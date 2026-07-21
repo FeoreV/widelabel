@@ -44,17 +44,15 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/types/package.json  ./packages/types/
 COPY apps/backend/package.json    ./apps/backend/
 
-RUN pnpm install --frozen-lockfile --ignore-scripts --prod
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY --from=builder /app/packages/config/dist ./packages/config/dist
+COPY --from=builder /app/packages/config/src  ./packages/config/src
 COPY --from=builder /app/packages/types/dist  ./packages/types/dist
-COPY --from=builder /app/apps/backend/dist    ./apps/backend/dist
-
-# Runtime migration files (SQL applied at startup)
-COPY apps/backend/src/migrations ./apps/backend/src/migrations
-
-# Medusa config is loaded by medusa start from project root
-COPY --from=builder /app/apps/backend/medusa-config.ts ./apps/backend/
+COPY --from=builder /app/packages/types/src   ./packages/types/src
+COPY --from=builder /app/apps/backend/medusa-config.ts ./apps/backend/medusa-config.ts
+COPY --from=builder /app/apps/backend/medusa-config.js ./apps/backend/medusa-config.js
+COPY --from=builder /app/apps/backend/src     ./apps/backend/src
 
 WORKDIR /app/apps/backend
 
@@ -63,4 +61,4 @@ EXPOSE 9000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
   CMD wget -qO- http://localhost:9000/health || exit 1
 
-CMD ["node", "--import", "tsx/esm", "../../node_modules/.bin/medusa", "start"]
+CMD ["sh", "-c", "pnpm exec medusa db:migrate && pnpm exec medusa db:sync-links && exec pnpm exec medusa start"]

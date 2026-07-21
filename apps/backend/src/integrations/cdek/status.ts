@@ -1,4 +1,4 @@
-import type { CdekAuthClient } from "./auth.js";
+import type { CdekAuthClient } from "./auth";
 
 export type SystemFulfillmentStatus =
   | "created"

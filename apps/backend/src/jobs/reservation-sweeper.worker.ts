@@ -1,5 +1,6 @@
-import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.js";
-import { transitionReservationStatus } from "../modules/wide-label/domain/reservation-state-machine.js";
+import type { MedusaContainer } from "@medusajs/framework/types";
+import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.ts";
+import { transitionReservationStatus } from "../modules/wide-label/domain/reservation-state-machine.ts";
 
 export interface SweeperRunResult {
   sweptCount: number;
@@ -29,3 +30,18 @@ export async function runReservationSweeperBatch(
     expiredReservationIds,
   };
 }
+
+export default async function reservationSweeperJob(container: MedusaContainer) {
+  const repository = container.hasRegistration?.("reservationRepository")
+    ? (container.resolve("reservationRepository") as IReservationRepository)
+    : null;
+  if (repository) {
+    await runReservationSweeperBatch(repository);
+  }
+}
+
+export const config = {
+  name: "reservation-sweeper",
+  schedule: "* * * * *",
+};
+

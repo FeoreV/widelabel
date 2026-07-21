@@ -1,5 +1,5 @@
-import type { CdekAuthClient } from "./auth.js";
-import type { CdekLocation, CdekPackageItem } from "./rates.js";
+import type { CdekAuthClient } from "./auth";
+import type { CdekLocation, CdekPackageItem } from "./rates";
 
 export interface CdekContactPerson {
   name: string;

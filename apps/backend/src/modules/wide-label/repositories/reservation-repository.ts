@@ -1,4 +1,4 @@
-import type { ReservationStatus } from "../models/reservation.js";
+import type { ReservationStatus } from "../models/reservation";
 
 export interface ReservationRecord {
   id: string;
@@ -30,10 +30,10 @@ export interface CreateReservationInput {
 
 export interface IReservationRepository {
   findById(id: string): Promise<ReservationRecord | null>;
-  findOpenByVariant(variantId: string): Promise<ReservationRecord | null>;
-  findOpenByCart(cartId: string): Promise<ReservationRecord[]>;
+  findOpenByVariant(variantId: string, now?: Date): Promise<ReservationRecord | null>;
+  findOpenByCart(cartId: string, now?: Date): Promise<ReservationRecord[]>;
   findExpired(now?: Date): Promise<ReservationRecord[]>;
-  create(input: CreateReservationInput): Promise<ReservationRecord>;
+  create(input: CreateReservationInput, now?: Date): Promise<ReservationRecord>;
   updateStatus(
     id: string,
     status: ReservationStatus,
@@ -53,8 +53,7 @@ export class InMemoryReservationRepository implements IReservationRepository {
     return this.reservations.get(id) || null;
   }
 
-  async findOpenByVariant(variantId: string): Promise<ReservationRecord | null> {
-    const now = new Date();
+  async findOpenByVariant(variantId: string, now: Date = new Date()): Promise<ReservationRecord | null> {
     for (const res of this.reservations.values()) {
       if (
         res.variant_id === variantId &&
@@ -67,8 +66,7 @@ export class InMemoryReservationRepository implements IReservationRepository {
     return null;
   }
 
-  async findOpenByCart(cartId: string): Promise<ReservationRecord[]> {
-    const now = new Date();
+  async findOpenByCart(cartId: string, now: Date = new Date()): Promise<ReservationRecord[]> {
     const result: ReservationRecord[] = [];
     for (const res of this.reservations.values()) {
       if (
@@ -95,14 +93,13 @@ export class InMemoryReservationRepository implements IReservationRepository {
     return result;
   }
 
-  async create(input: CreateReservationInput): Promise<ReservationRecord> {
-    const now = new Date();
-
+  async create(input: CreateReservationInput, referenceNow: Date = new Date()): Promise<ReservationRecord> {
+    const now = referenceNow;
     for (const res of this.reservations.values()) {
       if (
         res.variant_id === input.variant_id &&
         (res.status === "active" || res.status === "payment_pending") &&
-        res.expires_at > now
+        res.expires_at > referenceNow
       ) {
         throw new Error(`Open reservation already exists for variant ${input.variant_id}`);
       }

@@ -1,4 +1,4 @@
-import type { OrderSnapshot, OrderSnapshotRepository } from "../modules/wide-label/models/order-snapshot.js";
+import type { OrderSnapshot, OrderSnapshotRepository } from "../modules/wide-label/models/order-snapshot";
 import type { Measurements, Defect } from "@wide-label/types";
 
 export interface CreateOrderSnapshotInput {

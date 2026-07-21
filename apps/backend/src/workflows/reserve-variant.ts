@@ -1,7 +1,7 @@
 import type {
   IReservationRepository,
   ReservationRecord,
-} from "../modules/wide-label/repositories/reservation-repository.js";
+} from "../modules/wide-label/repositories/reservation-repository";
 
 export const HOLD_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -27,7 +27,7 @@ export async function reserveVariantWorkflow(
   input: ReserveVariantInput,
   now: Date = new Date()
 ): Promise<ReservationRecord> {
-  const existingOpen = await repository.findOpenByVariant(input.variant_id);
+  const existingOpen = await repository.findOpenByVariant(input.variant_id, now);
 
   if (existingOpen) {
     if (existingOpen.cart_id === input.cart_id) {
@@ -40,15 +40,18 @@ export async function reserveVariantWorkflow(
   const expiresAt = new Date(now.getTime() + HOLD_DURATION_MS);
 
   try {
-    return await repository.create({
-      variant_id: input.variant_id,
-      cart_id: input.cart_id,
-      customer_id: input.customer_id,
-      session_fingerprint: input.session_fingerprint,
-      status: "active",
-      reserved_at: now,
-      expires_at: expiresAt,
-    });
+    return await repository.create(
+      {
+        variant_id: input.variant_id,
+        cart_id: input.cart_id,
+        customer_id: input.customer_id,
+        session_fingerprint: input.session_fingerprint,
+        status: "active",
+        reserved_at: now,
+        expires_at: expiresAt,
+      },
+      now
+    );
   } catch (err: any) {
     if (err.message && err.message.includes("Open reservation already exists")) {
       throw new ItemHeldError();

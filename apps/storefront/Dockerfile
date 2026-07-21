@@ -64,10 +64,11 @@ COPY apps/storefront/package.json ./apps/storefront/
 RUN pnpm install --frozen-lockfile --ignore-scripts --prod
 
 COPY --from=builder /app/packages/config/dist ./packages/config/dist
+COPY --from=builder /app/packages/config/src  ./packages/config/src
 COPY --from=builder /app/packages/types/dist  ./packages/types/dist
-COPY --from=builder /app/apps/storefront/.next/standalone ./apps/storefront/.next/standalone
+COPY --from=builder /app/packages/types/src   ./packages/types/src
+COPY --from=builder /app/apps/storefront/.next/standalone ./
 COPY --from=builder /app/apps/storefront/.next/static     ./apps/storefront/.next/static
-COPY --from=builder /app/apps/storefront/public           ./apps/storefront/public
 
 WORKDIR /app/apps/storefront
 
@@ -76,4 +77,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
   CMD wget -qO- http://localhost:3000/api/health || exit 1
 
-CMD ["node", ".next/standalone/server.js"]
+CMD ["node", "server.js"]

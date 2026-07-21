@@ -39,7 +39,7 @@ test("ObservabilityService tracks span lifecycle and latency", async () => {
   assert.ok(traceId.startsWith("tr_"));
   assert.ok(spanId.startsWith("sp_"));
 
-  await new Promise((r) => setTimeout(r, 10));
+  await new Promise((r) => setTimeout(r, 25));
   obs.endSpan(spanId, "ok", { reservation_id: "res_001", variant_id: "var_001" });
 
   const latency = obs.getSpanLatencyMs(spanId);

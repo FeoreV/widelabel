@@ -1,6 +1,6 @@
 import { defineConfig } from "@medusajs/utils";
 
-function requireSecret(name: string): string {
+function requireSecret(name) {
   const value = process.env[name];
   if (!value && process.env.NODE_ENV === "production") {
     throw new Error(

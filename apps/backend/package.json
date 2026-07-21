@@ -7,14 +7,15 @@
   "scripts": {
     "dev": "medusa dev",
     "start": "medusa start",
-    "build": "tsc",
+    "build": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/**/*.test.ts test/**/*.test.ts"
+    "test": "node --test --import tsx src/**/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1091.0",
     "@aws-sdk/s3-request-presigner": "^3.1091.0",
+    "@medusajs/cli": "^2.5.1",
     "@medusajs/framework": "^2.5.1",
     "@medusajs/medusa": "^2.5.1",
     "@medusajs/utils": "^2.5.1",
@@ -25,6 +26,8 @@
   },
   "devDependencies": {
     "@types/ioredis": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.0"
   }
 }

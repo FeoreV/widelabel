@@ -1,5 +1,6 @@
-import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.js";
-import { transitionReservationStatus } from "../modules/wide-label/domain/reservation-state-machine.js";
+import type { MedusaContainer } from "@medusajs/framework/types";
+import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.ts";
+import { transitionReservationStatus } from "../modules/wide-label/domain/reservation-state-machine.ts";
 
 export interface ReservationExpirationJobData {
   reservation_id: string;
@@ -17,9 +18,13 @@ export async function processReservationExpirationJob(
   jobData: ReservationExpirationJobData,
   now: Date = new Date()
 ): Promise<ExpirationProcessResult> {
-  const openReservation = await repository.findOpenByVariant(jobData.variant_id);
+  const openReservation = await repository.findById(jobData.reservation_id);
 
-  if (!openReservation || openReservation.id !== jobData.reservation_id) {
+  if (
+    !openReservation ||
+    openReservation.variant_id !== jobData.variant_id ||
+    (openReservation.status !== "active" && openReservation.status !== "payment_pending")
+  ) {
     return {
       processed: false,
       reason: "reservation_not_active_or_not_found",
@@ -48,3 +53,18 @@ export async function processReservationExpirationJob(
     reservation_id: openReservation.id,
   };
 }
+
+export default async function reservationExpirationJob(container: MedusaContainer) {
+  const repository = container.hasRegistration?.("reservationRepository")
+    ? (container.resolve("reservationRepository") as IReservationRepository)
+    : null;
+  if (repository) {
+    // Scheduled processing if needed
+  }
+}
+
+export const config = {
+  name: "reservation-expiration",
+  schedule: "* * * * *",
+};
+

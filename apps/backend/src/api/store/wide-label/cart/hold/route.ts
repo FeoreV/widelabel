@@ -4,11 +4,11 @@ import {
   type CartHoldResponse,
   type ErrorResponse,
 } from "@wide-label/types";
-import { InMemoryReservationRepository } from "../../../../../modules/wide-label/repositories/reservation-repository.js";
+import { InMemoryReservationRepository } from "../../../../../modules/wide-label/repositories/reservation-repository.ts";
 import {
   reserveVariantWorkflow,
   ItemHeldError,
-} from "../../../../../workflows/reserve-variant.js";
+} from "../../../../../workflows/reserve-variant.ts";
 
 export const defaultRepository = new InMemoryReservationRepository();
 

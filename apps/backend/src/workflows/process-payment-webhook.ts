@@ -1,6 +1,6 @@
-import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.js";
-import type { InMemoryPaymentAttemptRepository, PaymentAttempt } from "../modules/wide-label/models/payment-attempt.js";
-import type { YooKassaClient } from "../integrations/yookassa/client.js";
+import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository";
+import type { InMemoryPaymentAttemptRepository, PaymentAttempt } from "../modules/wide-label/models/payment-attempt";
+import type { YooKassaClient } from "../integrations/yookassa/client";
 
 export interface ProcessPaymentWebhookInput {
   provider_payment_id: string;

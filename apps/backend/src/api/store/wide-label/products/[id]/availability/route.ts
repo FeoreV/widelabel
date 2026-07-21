@@ -1,6 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import type { AvailabilityResponse } from "@wide-label/types";
-import { InMemoryReservationRepository } from "../../../../../../modules/wide-label/repositories/reservation-repository.js";
+import { InMemoryReservationRepository } from "../../../../../../modules/wide-label/repositories/reservation-repository.ts";
 
 export const defaultRepository = new InMemoryReservationRepository();
 

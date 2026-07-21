@@ -33,7 +33,7 @@ test("runReservationSweeperBatch sweeps expired reservations in batch", async ()
   assert.deepStrictEqual(result.expiredReservationIds.sort(), [res1.id, res2.id].sort());
 
   // Future reservation remains open
-  const openRes3 = await repo.findOpenByVariant("var_sweep_03");
+  const openRes3 = await repo.findOpenByVariant("var_sweep_03", now);
   assert.ok(openRes3);
   assert.strictEqual(openRes3?.id, res3.id);
 });
