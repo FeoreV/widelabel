@@ -4,7 +4,8 @@
 Read only: `AGENTS.md`, the current file in `tasks/`, and the referenced files in `docs/`. Do not read the full `handoff.md` during implementation.
 
 ## Workflow
-One task = one focused PR. Before editing, list allowed files. After editing, run tests, lint, typecheck, inspect the diff, and stop. Never start the next task automatically.
+One task = one focused PR. Before editing, list allowed files. After editing, run tests, lint, typecheck, inspect the diff, and stop. After a task passes all acceptance checks, mark it DONE in tasks/STATUS.md and continue with the next unfinished task. Stop only on BLOCKED, failed checks, scope violation, or missing architectural decision.
+
 
 ## Scope
 Do not refactor unrelated code or add speculative abstractions. Do not add dependencies without justification. Do not modify `handoff.md`. Never create `TODO`, `FIXME`, `stub`, placeholder handlers, fake success paths, or swallowed errors.
