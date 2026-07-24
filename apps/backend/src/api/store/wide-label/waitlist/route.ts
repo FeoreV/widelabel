@@ -1,29 +1,33 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import { JoinWaitlistPayloadSchema } from "@wide-label/types";
 import { PostgresWaitlistRepository } from "../../../../modules/wide-label/models/waitlist.ts";
 
 export const POST = async (
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> => {
-  const repo =
-    (req as any).scope?.resolve("waitlistRepository") || new PostgresWaitlistRepository();
+  const parseResult = JoinWaitlistPayloadSchema.safeParse(req.body);
 
-  const { variant_id, email, telegram_handle, channel, consent_version } = req.body as any;
-
-  if (!variant_id || (!email && !telegram_handle) || !consent_version) {
+  if (!parseResult.success) {
     res.status(400).json({
       code: "INVALID_INPUT",
       message: "variant_id, consent_version, and either email or telegram_handle are required",
+      errors: parseResult.error.flatten(),
       retryable: false,
     });
     return;
   }
 
+  const { variant_id, email, telegram_handle, channel, consent_version } = parseResult.data;
+
+  const repo =
+    (req as any).scope?.resolve("waitlistRepository") || new PostgresWaitlistRepository();
+
   try {
     const entry = await repo.create({
       variant_id,
-      email,
-      telegram_handle,
+      email: email || undefined,
+      telegram_handle: telegram_handle || undefined,
       channel: channel || (email ? "email" : "telegram"),
       consent_version,
     });

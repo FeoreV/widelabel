@@ -10,7 +10,11 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/index.test.ts lib/**/*.test.ts components/**/*.test.ts"
+    "test": "tsx --test src/index.test.ts lib/**/*.test.ts components/**/*.test.ts",
+    "test:unit": "tsx --test src/index.test.ts lib/**/*.test.ts components/**/*.test.ts",
+    "test:integration": "tsx --test lib/**/*.test.ts",
+    "test:e2e": "playwright test",
+    "test:all": "tsx --test src/index.test.ts lib/**/*.test.ts components/**/*.test.ts && playwright test"
   },
   "dependencies": {
     "@wide-label/config": "workspace:*",

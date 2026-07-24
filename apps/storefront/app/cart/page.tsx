@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { parseCartCookie } from "../../lib/cart/cart-cookie";
 import { getCartReadModel } from "../../lib/cart/queries";
+import { formatPrice } from "../../components/catalog/product-card";
 
 export default async function CartPage() {
-  const cart = await getCartReadModel("demo_cart_id");
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+  const cartId = parseCartCookie(cookieHeader);
+  const cart = await getCartReadModel(cartId);
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
@@ -30,7 +36,7 @@ export default async function CartPage() {
               >
                 <div>
                   <h2>{item.title}</h2>
-                  <p>Price: ${(item.price / 100).toFixed(2)} {item.currency_code}</p>
+                  <p>Price: {formatPrice(item.price, item.currency_code)}</p>
                   {item.reserved_until && (
                     <p style={{ color: "#2b6cb0", fontSize: "0.875rem" }}>
                       Hold Expiry: {new Date(item.reserved_until).toLocaleTimeString()}
@@ -43,7 +49,7 @@ export default async function CartPage() {
 
           <div style={{ borderTop: "2px solid #333", paddingTop: "1rem", display: "flex", justifyContent: "space-between" }}>
             <h2>Subtotal:</h2>
-            <h2>${(cart.total / 100).toFixed(2)} {cart.currency_code}</h2>
+            <h2>{formatPrice(cart.total, cart.currency_code)}</h2>
           </div>
         </div>
       )}

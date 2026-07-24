@@ -10,6 +10,21 @@ export const POST = async (
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> => {
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!process.env.YOOKASSA_SHOP_ID ||
+      process.env.YOOKASSA_SHOP_ID === "test_shop" ||
+      !process.env.YOOKASSA_SECRET_KEY ||
+      process.env.YOOKASSA_SECRET_KEY === "test_secret")
+  ) {
+    res.status(500).json({
+      code: "PAYMENT_CONFIGURATION_ERROR",
+      message: "Production YooKassa credentials are not configured",
+      retryable: true,
+    });
+    return;
+  }
+
   const body = req.body as any;
   const event = body?.event;
   const paymentId = body?.object?.id;
@@ -50,10 +65,11 @@ export const POST = async (
       payment_attempt_id: result.payment_attempt.id,
     });
   } catch (err: any) {
-    res.status(400).json({
+    // Respond with 500 so provider retries transient errors
+    res.status(500).json({
       code: "WEBHOOK_PROCESSING_FAILED",
-      message: err.message || "Failed to process webhook",
-      retryable: false,
+      message: "An internal error occurred during webhook processing",
+      retryable: true,
     });
   }
 };

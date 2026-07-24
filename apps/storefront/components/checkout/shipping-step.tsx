@@ -1,31 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FakeShippingProvider, type IShippingProvider, type ShippingOption } from "../../lib/shipping/provider";
+import { ApiShippingProvider, type IShippingProvider, type ShippingOption } from "../../lib/shipping/provider";
 
 export interface ShippingStepProps {
   provider?: IShippingProvider;
   onSelectOption?: (option: ShippingOption) => void;
+  toCityCode?: number | string;
 }
 
 export function ShippingStep({
-  provider = new FakeShippingProvider(),
+  provider = new ApiShippingProvider(),
   onSelectOption,
+  toCityCode = 44,
 }: ShippingStepProps) {
   const [options, setOptions] = useState<ShippingOption[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    provider.getAvailableOptions().then((opts) => {
-      setOptions(opts);
-      if (opts.length > 0) {
-        setSelectedId(opts[0].id);
-        onSelectOption?.(opts[0]);
-      }
-      setLoading(false);
-    });
-  }, []);
+    setLoading(true);
+    setError(null);
+    provider
+      .getAvailableOptions(toCityCode)
+      .then((opts) => {
+        setOptions(opts);
+        if (opts.length > 0) {
+          setSelectedId(opts[0].id);
+          onSelectOption?.(opts[0]);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load shipping rates");
+        setLoading(false);
+      });
+  }, [toCityCode]);
 
   const handleSelect = (opt: ShippingOption) => {
     setSelectedId(opt.id);
@@ -34,6 +45,14 @@ export function ShippingStep({
 
   if (loading) {
     return <p>Loading shipping methods...</p>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: "1rem", border: "1px solid #fc8181", borderRadius: "8px", color: "#c53030" }}>
+        <p><strong>Shipping Error:</strong> {error}</p>
+      </div>
+    );
   }
 
   return (

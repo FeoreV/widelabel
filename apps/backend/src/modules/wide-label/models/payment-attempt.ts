@@ -14,6 +14,7 @@ export interface PaymentAttempt {
   currency_code: string;
   status: PaymentAttemptStatus;
   external_payment_id?: string | null;
+  confirmation_url?: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -48,8 +49,8 @@ export class PostgresPaymentAttemptRepository implements IPaymentAttemptReposito
     return {
       id: row.id,
       idempotency_key: row.idempotency_key,
-      cart_id: row.order_id || row.cart_id,
-      reservation_id: row.reservation_id || row.id,
+      cart_id: row.cart_id || row.order_id,
+      reservation_id: row.reservation_id,
       provider: row.provider as PaymentProvider,
       amount: Number(row.amount),
       currency_code: row.currency_code.trim(),
@@ -65,13 +66,13 @@ export class PostgresPaymentAttemptRepository implements IPaymentAttemptReposito
     try {
       const res = await this.pool.query(
         `INSERT INTO wide_label_payment_attempt (
-           ${attempt.id ? "id," : ""} order_id, provider, provider_payment_id, status, amount, currency_code, idempotency_key, created_at, updated_at
+           ${attempt.id ? "id," : ""} cart_id, reservation_id, provider, provider_payment_id, status, amount, currency_code, idempotency_key, created_at, updated_at
          ) VALUES (
-           ${attempt.id ? "$1," : ""} ${attempt.id ? "$2" : "$1"}, ${attempt.id ? "$3" : "$2"}, ${attempt.id ? "$4" : "$3"}, ${attempt.id ? "$5" : "$4"}, ${attempt.id ? "$6" : "$5"}, ${attempt.id ? "$7" : "$6"}, ${attempt.id ? "$8" : "$7"}, ${attempt.id ? "$9" : "$8"}, ${attempt.id ? "$10" : "$9"}
+           ${attempt.id ? "$1," : ""} ${attempt.id ? "$2" : "$1"}, ${attempt.id ? "$3" : "$2"}, ${attempt.id ? "$4" : "$3"}, ${attempt.id ? "$5" : "$4"}, ${attempt.id ? "$6" : "$5"}, ${attempt.id ? "$7" : "$6"}, ${attempt.id ? "$8" : "$7"}, ${attempt.id ? "$9" : "$8"}, ${attempt.id ? "$10" : "$9"}, ${attempt.id ? "$11" : "$10"}
          ) RETURNING *`,
         attempt.id
-          ? [attempt.id, attempt.cart_id, attempt.provider, attempt.external_payment_id || null, attempt.status, attempt.amount, attempt.currency_code, attempt.idempotency_key, now, now]
-          : [attempt.cart_id, attempt.provider, attempt.external_payment_id || null, attempt.status, attempt.amount, attempt.currency_code, attempt.idempotency_key, now, now]
+          ? [attempt.id, attempt.cart_id, attempt.reservation_id, attempt.provider, attempt.external_payment_id || null, attempt.status, attempt.amount, attempt.currency_code, attempt.idempotency_key, now, now]
+          : [attempt.cart_id, attempt.reservation_id, attempt.provider, attempt.external_payment_id || null, attempt.status, attempt.amount, attempt.currency_code, attempt.idempotency_key, now, now]
       );
       return this.mapRow(res.rows[0]);
     } catch (err: any) {

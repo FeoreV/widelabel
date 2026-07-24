@@ -27,7 +27,7 @@ export default defineConfig({
         process.env.DATABASE_URL?.includes("sslmode=disable") ||
         process.env.NODE_ENV !== "production"
       ? { connection: { ssl: false } }
-      : { connection: { ssl: false } },
+      : { connection: { ssl: { rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" } } },
     redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
     http: {
       storeCors: process.env.STORE_CORS || "http://localhost:3000",
@@ -37,8 +37,8 @@ export default defineConfig({
       cookieSecret: requireSecret("COOKIE_SECRET"),
     },
     cookieOptions: {
-      sameSite: process.env.NODE_ENV === "production" && !process.env.COOKIE_SECURE ? "lax" : false,
-      secure: process.env.COOKIE_SECURE === "false" ? false : process.env.NODE_ENV === "production",
+      sameSite: (process.env.COOKIE_SAME_SITE as "lax" | "strict" | "none") || "lax",
+      secure: process.env.COOKIE_SECURE === "true" || (process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false"),
     },
   },
   modules: process.env.REDIS_URL

@@ -29,6 +29,7 @@ export function WaitlistForm({
         variant_id: variantId,
         email,
         channel,
+        consent_version: "v1.0",
       });
       setSuccessMessage(res.message || "You have been added to the waitlist!");
       setEmail("");

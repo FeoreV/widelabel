@@ -81,7 +81,7 @@ export async function getCatalogProductById(
   id: string
 ): Promise<{ product: CatalogProduct; availability: AvailabilityResponse | null }> {
   const products = await getCatalogProducts();
-  const product = products.find((p) => p.id === id);
+  const product = products.find((p) => p.id === id || p.handle === id);
 
   if (!product) {
     throw new Error(`Product with id "${id}" not found`);
