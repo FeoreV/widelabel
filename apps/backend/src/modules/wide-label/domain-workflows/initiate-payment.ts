@@ -64,6 +64,9 @@ export async function initiatePaymentWorkflow(
     capture: true,
     description: `Order for reservation ${reservation.id}`,
     idempotency_key: input.idempotency_key,
+    metadata: {
+      idempotency_key: input.idempotency_key,
+    },
   });
 
   const confirmationUrl = yooPayment.confirmation?.confirmation_url;

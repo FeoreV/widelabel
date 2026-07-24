@@ -1,8 +1,5 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 
-export const GET = async (
-  _req: MedusaRequest,
-  res: MedusaResponse
-): Promise<void> => {
+export const GET = async (_req: MedusaRequest, res: MedusaResponse): Promise<void> => {
   res.status(200).json({ status: "ok" });
 };
