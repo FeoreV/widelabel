@@ -8,6 +8,7 @@ test("JoinWaitlistPayloadSchema validates email and variantId", () => {
     variant_id: "var_01",
     email: "test@example.com",
     channel: "email",
+    consent_version: "v1.0",
   });
   assert.strictEqual(valid.email, "test@example.com");
 
@@ -15,6 +16,7 @@ test("JoinWaitlistPayloadSchema validates email and variantId", () => {
     JoinWaitlistPayloadSchema.parse({
       variant_id: "var_01",
       email: "invalid-email",
+      consent_version: "v1.0",
     });
   });
 });
@@ -37,6 +39,7 @@ test("ApiWaitlistAdapter handles mock fetch call", async () => {
     variant_id: "var_01",
     email: "user@example.com",
     channel: "email",
+    consent_version: "v1.0",
   });
 
   assert.strictEqual(res.success, true);

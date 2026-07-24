@@ -72,6 +72,70 @@ export class ExtendedMedusaServerClient extends MedusaStorefrontClient {
 
     return response.json();
   }
+
+  async getCart(cartId: string): Promise<any> {
+    const backendUrl =
+      process.env.MEDUSA_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_MEDUSA_URL ||
+      process.env.BACKEND_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      "http://localhost:9000";
+    const publishableKey =
+      process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
+      process.env.MEDUSA_PUBLISHABLE_KEY ||
+      "pk_0f5bfcffb9885273914dc748f5afa0a5f8ffd41557ea1b9631422069f1c81989";
+    const url = `${backendUrl.replace(/\/$/, "")}/store/carts/${encodeURIComponent(cartId)}?fields=*items,*items.variant`;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (publishableKey) {
+      headers["x-publishable-api-key"] = publishableKey;
+    }
+
+    const response = await fetch(url, { method: "GET", headers, cache: "no-store" });
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error(`Medusa getCart failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.cart || data;
+  }
+
+  async createCart(currencyCode = "rub"): Promise<any> {
+    const backendUrl =
+      process.env.MEDUSA_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_MEDUSA_URL ||
+      process.env.BACKEND_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      "http://localhost:9000";
+    const publishableKey =
+      process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
+      process.env.MEDUSA_PUBLISHABLE_KEY ||
+      "pk_0f5bfcffb9885273914dc748f5afa0a5f8ffd41557ea1b9631422069f1c81989";
+    const url = `${backendUrl.replace(/\/$/, "")}/store/carts`;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (publishableKey) {
+      headers["x-publishable-api-key"] = publishableKey;
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ currency_code: currencyCode }),
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Medusa createCart failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.cart || data;
+  }
 }
 
 export function getMedusaServerClient(): ExtendedMedusaServerClient {

@@ -40,3 +40,22 @@ export const ErrorResponseSchema = z.object({
   retryable: z.boolean().default(false),
 });
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
+
+// Waitlist Payload Schema
+export const JoinWaitlistPayloadSchema = z
+  .object({
+    variant_id: z.string().min(1, "Variant ID is required"),
+    email: z.string().email("Valid email is required").optional().or(z.literal("")),
+    telegram_handle: z.string().optional().or(z.literal("")),
+    channel: z.enum(["email", "telegram", "both"]).default("email"),
+    consent_version: z.string().min(1, "Consent version is required").default("v1.0"),
+  })
+  .refine(
+    (data) => Boolean(data.email) || Boolean(data.telegram_handle),
+    {
+      message: "Either email or telegram_handle must be provided",
+      path: ["email"],
+    }
+  );
+
+export type JoinWaitlistPayload = z.infer<typeof JoinWaitlistPayloadSchema>;

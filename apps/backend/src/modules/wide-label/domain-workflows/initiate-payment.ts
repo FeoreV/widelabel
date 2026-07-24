@@ -23,11 +23,15 @@ export async function initiatePaymentWorkflow(
   yookassaClient: YooKassaClient,
   input: InitiatePaymentInput
 ): Promise<InitiatePaymentResult> {
+  if (input.provider !== "yookassa") {
+    throw new Error(`Unsupported payment provider: '${input.provider}'. Only YooKassa is supported.`);
+  }
+
   const existingAttempt = await paymentAttemptRepo.findByIdempotencyKey(input.idempotency_key);
   if (existingAttempt) {
     return {
       payment_attempt: existingAttempt,
-      confirmation_url: `https://yoomoney.ru/checkout/payments/v2/contract?orderId=${existingAttempt.external_payment_id || existingAttempt.id}`,
+      confirmation_url: existingAttempt.confirmation_url || "",
     };
   }
 
@@ -62,8 +66,13 @@ export async function initiatePaymentWorkflow(
     idempotency_key: input.idempotency_key,
   });
 
+  const confirmationUrl = yooPayment.confirmation?.confirmation_url;
+  if (!confirmationUrl) {
+    throw new Error("YooKassa payment response missing confirmation_url");
+  }
+
   const paymentAttempt = await paymentAttemptRepo.create({
-    id: `pay_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `pay_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     idempotency_key: input.idempotency_key,
     cart_id: input.cart_id,
     reservation_id: input.reservation_id,
@@ -72,12 +81,13 @@ export async function initiatePaymentWorkflow(
     currency_code: input.currency_code,
     status: "pending",
     external_payment_id: yooPayment.id,
+    confirmation_url: confirmationUrl,
     created_at: new Date(),
     updated_at: new Date(),
   });
 
   return {
     payment_attempt: paymentAttempt,
-    confirmation_url: yooPayment.confirmation?.confirmation_url || "",
+    confirmation_url: confirmationUrl,
   };
 }

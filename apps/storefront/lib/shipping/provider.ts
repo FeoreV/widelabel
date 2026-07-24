@@ -9,7 +9,7 @@ export interface ShippingOption {
 }
 
 export interface IShippingProvider {
-  getAvailableOptions(): Promise<ShippingOption[]>;
+  getAvailableOptions(toCityCode?: number | string): Promise<ShippingOption[]>;
 }
 
 export class ApiShippingProvider implements IShippingProvider {
@@ -21,33 +21,32 @@ export class ApiShippingProvider implements IShippingProvider {
     this.backendUrl = backendUrl.replace(/\/$/, "");
   }
 
-  async getAvailableOptions(): Promise<ShippingOption[]> {
-    try {
-      const res = await fetch(
-        `${this.backendUrl}/store/wide-label/shipping/cdek/rates?to_city_code=44`,
-        { cache: "no-store" }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data && typeof data.period_min === "number" && typeof data.price === "number") {
-          return [
-            {
-              id: "ship_cdek_pvz",
-              name: "CDEK Pickup Point (PVZ)",
-              type: "pvz",
-              provider: "cdek",
-              price: data.price,
-              currency_code: data.currency || "RUB",
-              estimated_days: `${data.period_min}-${data.period_max || data.period_min + 2} days`,
-            },
-          ];
-        }
-      }
-    } catch {
-      // Fallback to static shipping options if backend shipping rate call fails
+  async getAvailableOptions(toCityCode: number | string = 44): Promise<ShippingOption[]> {
+    const res = await fetch(
+      `${this.backendUrl}/store/wide-label/shipping/cdek/rates?to_city_code=${encodeURIComponent(toCityCode)}`,
+      { cache: "no-store" }
+    );
+
+    if (!res.ok) {
+      throw new Error(`Shipping rate calculation failed with status ${res.status}`);
     }
 
-    return new FakeShippingProvider().getAvailableOptions();
+    const data = await res.json();
+    if (!data || typeof data.price !== "number" || typeof data.period_min !== "number") {
+      throw new Error("Invalid shipping rate response format from provider");
+    }
+
+    return [
+      {
+        id: "ship_cdek_pvz",
+        name: "CDEK Pickup Point (PVZ)",
+        type: "pvz",
+        provider: "cdek",
+        price: data.price,
+        currency_code: data.currency || "RUB",
+        estimated_days: `${data.period_min}-${data.period_max || data.period_min + 2} days`,
+      },
+    ];
   }
 }
 

@@ -11,6 +11,21 @@ export const POST = async (
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> => {
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!process.env.YOOKASSA_SHOP_ID ||
+      process.env.YOOKASSA_SHOP_ID === "test_shop" ||
+      !process.env.YOOKASSA_SECRET_KEY ||
+      process.env.YOOKASSA_SECRET_KEY === "test_secret")
+  ) {
+    res.status(500).json({
+      code: "PAYMENT_CONFIGURATION_ERROR",
+      message: "Production YooKassa credentials are not configured",
+      retryable: false,
+    });
+    return;
+  }
+
   const parseResult = CheckoutPayloadSchema.safeParse(req.body);
 
   if (!parseResult.success) {
@@ -24,11 +39,10 @@ export const POST = async (
   }
 
   const { cart_id, payment } = parseResult.data;
-  const reservation_id = (req.body as any).reservation_id || `res_${cart_id}`;
 
-  const reservationRepo =
+  const reservationRepo: PostgresReservationRepository =
     (req as any).scope?.resolve("reservationRepository") || new PostgresReservationRepository();
-  const paymentAttemptRepo =
+  const paymentAttemptRepo: PostgresPaymentAttemptRepository =
     (req as any).scope?.resolve("paymentAttemptRepository") || new PostgresPaymentAttemptRepository();
   const yookassaClient: YooKassaClient =
     (req as any).scope?.resolve("yookassaClient") ||
@@ -38,11 +52,26 @@ export const POST = async (
     );
 
   try {
-    const idempotencyKey = (req.headers["x-idempotency-key"] as string) || `idem_${cart_id}_${Date.now()}`;
-    const returnUrl = process.env.YOOKASSA_RETURN_URL || "http://localhost:3000/checkout/success";
+    const openReservations = await reservationRepo.findOpenByCart(cart_id);
+    const openReservation = openReservations[0];
 
-    const openReservation = await reservationRepo.findById(reservation_id);
-    const amount = (req.body as any).amount || 15000;
+    if (!openReservation) {
+      res.status(400).json({
+        code: "NO_ACTIVE_RESERVATION",
+        message: "No active reservation found for this cart",
+        retryable: false,
+      });
+      return;
+    }
+
+    const idempotencyKey =
+      (req.headers["x-idempotency-key"] as string) || `idem_${cart_id}_${openReservation.id}`;
+    const returnUrl =
+      process.env.YOOKASSA_RETURN_URL || "http://localhost:3000/checkout/success";
+
+    const amount = (req.body as any).amount && typeof (req.body as any).amount === "number"
+      ? (req.body as any).amount
+      : 15000;
     const currencyCode = "RUB";
 
     const result = await initiatePaymentWorkflow(
@@ -51,7 +80,7 @@ export const POST = async (
       yookassaClient,
       {
         cart_id,
-        reservation_id,
+        reservation_id: openReservation.id,
         provider: payment.provider as any,
         amount,
         currency_code: currencyCode,

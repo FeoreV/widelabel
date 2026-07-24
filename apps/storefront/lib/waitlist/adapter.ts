@@ -1,12 +1,6 @@
-import { z } from "zod";
+import { JoinWaitlistPayloadSchema, type JoinWaitlistPayload } from "@wide-label/types";
 
-export const JoinWaitlistPayloadSchema = z.object({
-  variant_id: z.string().min(1, "Variant ID is required"),
-  email: z.string().email("Valid email is required"),
-  channel: z.enum(["email", "telegram", "both"]).default("email"),
-});
-
-export type JoinWaitlistPayload = z.infer<typeof JoinWaitlistPayloadSchema>;
+export { JoinWaitlistPayloadSchema, type JoinWaitlistPayload };
 
 export interface JoinWaitlistResponse {
   success: boolean;

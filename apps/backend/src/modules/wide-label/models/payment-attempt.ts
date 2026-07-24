@@ -14,6 +14,7 @@ export interface PaymentAttempt {
   currency_code: string;
   status: PaymentAttemptStatus;
   external_payment_id?: string | null;
+  confirmation_url?: string | null;
   created_at: Date;
   updated_at: Date;
 }

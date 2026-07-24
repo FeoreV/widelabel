@@ -99,6 +99,10 @@ test("Checkout E2E: duplicate webhook calls are handled idempotently", async () 
     status: "pending",
     paid: false,
     amount: { value: "150.00", currency: "RUB" },
+    confirmation: {
+      type: "redirect",
+      confirmation_url: "https://yoomoney.ru/checkout/payments/contract?id=yoo_e2e_pay_2",
+    },
     created_at: new Date().toISOString(),
   });
 
@@ -150,6 +154,10 @@ test("Checkout E2E: amount mismatch in webhook strictly rejects payment", async 
     status: "pending",
     paid: false,
     amount: { value: "150.00", currency: "RUB" },
+    confirmation: {
+      type: "redirect",
+      confirmation_url: "https://yoomoney.ru/checkout/payments/contract?id=yoo_e2e_pay_3",
+    },
     created_at: new Date().toISOString(),
   });
 
