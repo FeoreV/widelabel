@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { InMemoryReservationRepository } from "../modules/wide-label/repositories/reservation-repository.ts";
-import { reserveVariantWorkflow } from "../workflows/reserve-variant.ts";
+import { reserveVariantWorkflow } from "../modules/wide-label/domain-workflows/reserve-variant.ts";
 import { handleCartLineRemoved } from "./cart-line-removed.ts";
 
 test("handleCartLineRemoved releases open reservation immediately when cart item is removed", async () => {

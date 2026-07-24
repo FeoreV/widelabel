@@ -1,9 +1,9 @@
 import assert from "node:assert";
 import test from "node:test";
-import { AdminDropService } from "./drop-admin.ts";
+import { InMemoryAdminDropService } from "./drop-admin.ts";
 
 test("AdminDropService supports drop CRUD and product assignment", () => {
-  const service = new AdminDropService();
+  const service = new InMemoryAdminDropService();
 
   // Create
   const drop = service.createDrop({

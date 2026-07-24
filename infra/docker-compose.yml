@@ -43,8 +43,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-wide_label_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-wide_label_minio_secret_key_123}
     ports:
       - "9002:9000"
       - "9003:9001"
@@ -65,7 +65,7 @@ services:
     entrypoint: /bin/sh
     command: >
       -c "
-      mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin} &&
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-wide_label_minio_admin} $${MINIO_ROOT_PASSWORD:-wide_label_minio_secret_key_123} &&
       mc mb --ignore-existing local/wide-label-media &&
       mc anonymous set download local/wide-label-media
       "
@@ -82,12 +82,14 @@ services:
       - ../.env.docker
     environment:
       NODE_ENV: production
+      COOKIE_SECURE: "false"
       DATABASE_URL: postgres://wide_label:wide_label@postgres:5432/wide_label
       REDIS_URL: redis://redis:6379
       S3_ENDPOINT: http://minio:9000
+      MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://localhost:9000}
       STORE_CORS: ${STORE_CORS:-http://localhost:3000}
-      ADMIN_CORS: ${ADMIN_CORS:-http://localhost:7001}
-      AUTH_CORS: ${AUTH_CORS:-http://localhost:7001}
+      ADMIN_CORS: ${ADMIN_CORS:-http://localhost:7001,http://localhost:9000}
+      AUTH_CORS: ${AUTH_CORS:-http://localhost:7001,http://localhost:9000,http://localhost:3000}
     ports:
       - "9000:9000"
     depends_on:
@@ -99,10 +101,10 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:9000/health || exit 1"]
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      start_period: 30s
-      retries: 5
+      start_period: 180s
+      retries: 20
 
   storefront:
     build:

@@ -1,3 +1,5 @@
+import type pg from "pg";
+import { getPgPool } from "../infra/db.ts";
 import type { ConditionLabel } from "@wide-label/types";
 
 export interface AdminProductUpdateInput {
@@ -33,12 +35,77 @@ export interface AdminProductDetails {
   updated_at: Date;
 }
 
-export class AdminProductExtensionService {
+export interface IAdminProductExtensionService {
+  updateProductDetails(input: AdminProductUpdateInput): Promise<AdminProductDetails> | AdminProductDetails;
+  getProductDetails(productId: string): Promise<AdminProductDetails | null> | AdminProductDetails | null;
+}
+
+export class PostgresAdminProductExtensionService implements IAdminProductExtensionService {
+  private pool: pg.Pool;
+
+  constructor(pool: pg.Pool = getPgPool()) {
+    this.pool = pool;
+  }
+
+  public async getProductDetails(productId: string): Promise<AdminProductDetails | null> {
+    const res = await this.pool.query(
+      `SELECT metadata, updated_at FROM product WHERE id = $1`,
+      [productId]
+    );
+    if (res.rows.length === 0) return null;
+
+    const metadata = res.rows[0].metadata || {};
+    return {
+      product_id: productId,
+      condition_label: (metadata.condition_label as ConditionLabel) || "excellent",
+      measurements: metadata.measurements_json || { version: 1, unit: "cm", fields: {} },
+      defects: metadata.defects || [],
+      archival_notes: metadata.archival_notes ?? undefined,
+      updated_at: new Date(res.rows[0].updated_at || Date.now()),
+    };
+  }
+
+  public async updateProductDetails(input: AdminProductUpdateInput): Promise<AdminProductDetails> {
+    const existing = await this.getProductDetails(input.product_id);
+    const existingMeta = existing ? {
+      condition_label: existing.condition_label,
+      measurements_json: existing.measurements,
+      defects: existing.defects,
+      archival_notes: existing.archival_notes,
+    } : {};
+
+    const newMeta = {
+      ...existingMeta,
+      ...(input.condition_label ? { condition_label: input.condition_label } : {}),
+      ...(input.measurements ? { measurements_json: input.measurements } : {}),
+      ...(input.defects ? { defects: input.defects } : {}),
+      ...(input.archival_notes !== undefined ? { archival_notes: input.archival_notes } : {}),
+    };
+
+    const now = new Date();
+    await this.pool.query(
+      `UPDATE product
+       SET metadata = COALESCE(metadata, '{}'::jsonb) || $1::jsonb,
+           updated_at = $2
+       WHERE id = $3`,
+      [JSON.stringify(newMeta), now, input.product_id]
+    );
+
+    return {
+      product_id: input.product_id,
+      condition_label: newMeta.condition_label || "excellent",
+      measurements: newMeta.measurements_json || { version: 1, unit: "cm", fields: {} },
+      defects: newMeta.defects || [],
+      archival_notes: newMeta.archival_notes,
+      updated_at: now,
+    };
+  }
+}
+
+export class InMemoryAdminProductExtensionService implements IAdminProductExtensionService {
   private products = new Map<string, AdminProductDetails>();
 
-  public updateProductDetails(
-    input: AdminProductUpdateInput
-  ): AdminProductDetails {
+  public updateProductDetails(input: AdminProductUpdateInput): AdminProductDetails {
     const existing = this.products.get(input.product_id) || {
       product_id: input.product_id,
       condition_label: "excellent" as ConditionLabel,
@@ -60,9 +127,6 @@ export class AdminProductExtensionService {
     };
 
     this.products.set(input.product_id, updated);
-
-    // CRITICAL INVARIANT GUARANTEE: This admin update ONLY mutates live product metadata.
-    // OrderSnapshot tables are strictly untouched.
     return updated;
   }
 
@@ -70,3 +134,5 @@ export class AdminProductExtensionService {
     return this.products.get(productId) || null;
   }
 }
+
+export const AdminProductExtensionService = PostgresAdminProductExtensionService;

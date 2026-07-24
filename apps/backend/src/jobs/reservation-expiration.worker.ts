@@ -1,4 +1,4 @@
-import type { MedusaContainer } from "@medusajs/framework/types";
+import type { MedusaContainer } from "@medusajs/framework";
 import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.ts";
 import { transitionReservationStatus } from "../modules/wide-label/domain/reservation-state-machine.ts";
 
@@ -59,7 +59,15 @@ export default async function reservationExpirationJob(container: MedusaContaine
     ? (container.resolve("reservationRepository") as IReservationRepository)
     : null;
   if (repository) {
-    // Scheduled processing if needed
+    const now = new Date();
+    const expiredReservations = await repository.findExpired(now);
+    for (const res of expiredReservations) {
+      await processReservationExpirationJob(
+        repository,
+        { reservation_id: res.id, variant_id: res.variant_id },
+        now
+      );
+    }
   }
 }
 

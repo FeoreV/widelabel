@@ -13,7 +13,9 @@ function requireSecret(name: string): string {
 
 export default defineConfig({
   admin: {
-    disable: true,
+    disable: false,
+    backendUrl: process.env.MEDUSA_BACKEND_URL || process.env.BACKEND_URL || "http://localhost:9000",
+    path: "/app",
   },
   projectConfig: {
     databaseUrl:
@@ -29,10 +31,14 @@ export default defineConfig({
     redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
     http: {
       storeCors: process.env.STORE_CORS || "http://localhost:3000",
-      adminCors: process.env.ADMIN_CORS || "http://localhost:7001",
-      authCors: process.env.AUTH_CORS || "http://localhost:7001",
+      adminCors: process.env.ADMIN_CORS || process.env.SHOPOWNER_CORS || "http://localhost:7001,http://localhost:9000",
+      authCors: process.env.AUTH_CORS || "http://localhost:7001,http://localhost:9000,http://localhost:3000",
       jwtSecret: requireSecret("JWT_SECRET"),
       cookieSecret: requireSecret("COOKIE_SECRET"),
+    },
+    cookieOptions: {
+      sameSite: process.env.NODE_ENV === "production" && !process.env.COOKIE_SECURE ? "lax" : false,
+      secure: process.env.COOKIE_SECURE === "false" ? false : process.env.NODE_ENV === "production",
     },
   },
   modules: process.env.REDIS_URL
@@ -46,7 +52,9 @@ export default defineConfig({
         {
           resolve: "@medusajs/medusa/workflow-engine-redis",
           options: {
-            redisUrl: process.env.REDIS_URL,
+            redis: {
+              redisUrl: process.env.REDIS_URL,
+            },
           },
         },
       ]

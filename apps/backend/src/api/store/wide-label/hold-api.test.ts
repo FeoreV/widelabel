@@ -1,7 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
-import { GET as availabilityGET, defaultRepository as availRepo } from "./products/[id]/availability/route.ts";
-import { POST as holdPOST, defaultRepository as holdRepo } from "./cart/hold/route.ts";
+import { GET as availabilityGET } from "./products/[id]/availability/route.ts";
+import { POST as holdPOST } from "./cart/hold/route.ts";
+import { InMemoryReservationRepository } from "../../../modules/wide-label/repositories/reservation-repository.ts";
 
 function createMockResponse() {
   let statusCode = 0;
@@ -26,7 +27,11 @@ function createMockResponse() {
 }
 
 test("GET availability returns available when no reservation exists", async () => {
-  const req = { params: { id: "var_avail_01" } } as any;
+  const repo = new InMemoryReservationRepository();
+  const req = {
+    params: { id: "var_avail_01" },
+    scope: { resolve: () => repo },
+  } as any;
   const res = createMockResponse();
 
   await availabilityGET(req, res as any);
@@ -38,11 +43,13 @@ test("GET availability returns available when no reservation exists", async () =
 });
 
 test("POST hold creates reservation and returns contract format", async () => {
+  const repo = new InMemoryReservationRepository();
   const req = {
     body: {
       variant_id: "var_hold_01",
       cart_id: "cart_01",
     },
+    scope: { resolve: () => repo },
   } as any;
   const res = createMockResponse();
 
@@ -57,11 +64,13 @@ test("POST hold creates reservation and returns contract format", async () => {
 });
 
 test("POST hold returns 409 ITEM_HELD error contract when another customer holds variant", async () => {
+  const repo = new InMemoryReservationRepository();
   const req1 = {
     body: {
       variant_id: "var_hold_02",
       cart_id: "cart_01",
     },
+    scope: { resolve: () => repo },
   } as any;
   const res1 = createMockResponse();
   await holdPOST(req1, res1 as any);
@@ -71,6 +80,7 @@ test("POST hold returns 409 ITEM_HELD error contract when another customer holds
       variant_id: "var_hold_02",
       cart_id: "cart_02",
     },
+    scope: { resolve: () => repo },
   } as any;
   const res2 = createMockResponse();
   await holdPOST(req2, res2 as any);

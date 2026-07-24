@@ -4,10 +4,10 @@ import { InMemoryReservationRepository } from "../src/modules/wide-label/reposit
 import { InMemoryPaymentAttemptRepository } from "../src/modules/wide-label/models/payment-attempt.ts";
 import { OrderSnapshotRepository } from "../src/modules/wide-label/models/order-snapshot.ts";
 import { YooKassaClient } from "../src/integrations/yookassa/client.ts";
-import { reserveVariantWorkflow } from "../src/workflows/reserve-variant.ts";
-import { initiatePaymentWorkflow } from "../src/workflows/initiate-payment.ts";
-import { processPaymentWebhookWorkflow } from "../src/workflows/process-payment-webhook.ts";
-import { createOrderSnapshotWorkflow } from "../src/workflows/create-order-snapshot.ts";
+import { reserveVariantWorkflow } from "../src/modules/wide-label/domain-workflows/reserve-variant.ts";
+import { initiatePaymentWorkflow } from "../src/modules/wide-label/domain-workflows/initiate-payment.ts";
+import { processPaymentWebhookWorkflow } from "../src/modules/wide-label/domain-workflows/process-payment-webhook.ts";
+import { createOrderSnapshotWorkflow } from "../src/modules/wide-label/domain-workflows/create-order-snapshot.ts";
 
 test("Checkout E2E: redirect page landing does NOT prove payment success until verified webhook processes", async () => {
   const reservationRepo = new InMemoryReservationRepository();

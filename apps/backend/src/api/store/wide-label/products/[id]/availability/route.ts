@@ -1,16 +1,17 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import type { AvailabilityResponse } from "@wide-label/types";
-import { InMemoryReservationRepository } from "../../../../../../modules/wide-label/repositories/reservation-repository.ts";
-
-export const defaultRepository = new InMemoryReservationRepository();
+import {
+  PostgresReservationRepository,
+  type IReservationRepository,
+} from "../../../../../../modules/wide-label/repositories/reservation-repository.ts";
 
 export const GET = async (
   req: MedusaRequest,
   res: MedusaResponse
 ): Promise<void> => {
   const { id } = req.params;
-  const repo: InMemoryReservationRepository =
-    (req as any).scope?.resolve("reservationRepository") || defaultRepository;
+  const repo: IReservationRepository =
+    (req as any).scope?.resolve("reservationRepository") || new PostgresReservationRepository();
 
   const openReservation = await repo.findOpenByVariant(id);
 

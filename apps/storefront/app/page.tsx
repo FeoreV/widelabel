@@ -1,34 +1,68 @@
 import Link from "next/link";
-import { getCatalogProducts } from "../lib/catalog/queries";
+import { getCatalogProducts, type CatalogProduct } from "../lib/catalog/queries";
+import { SiteHeader } from "../components/home/site-header";
+import { HeroSection } from "../components/home/hero";
+import { FeatureStrip } from "../components/home/feature-strip";
+import { CollectionsGrid } from "../components/home/collections-grid";
+import { ProductGrid } from "../components/catalog/product-grid";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
-  const products = await getCatalogProducts();
+  let products: CatalogProduct[] = [];
+  let error: string | null = null;
+
+  try {
+    products = await getCatalogProducts();
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[HomePage] Error fetching catalog products:", detail);
+    error = detail || "Каталог временно недоступен. Попробуйте обновить страницу.";
+  }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>WIDE LABEL — Archives & 1-of-1 Pieces</h1>
-      <p>Exclusive single-piece curated garments. No restocks.</p>
+    <div className="storefront-root">
+      <SiteHeader />
 
-      <section style={{ display: "grid", gap: "1.5rem", marginTop: "2rem" }}>
-        {products.map((product) => (
-          <article
-            key={product.id}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "1rem",
-            }}
-          >
-            <h2>{product.title}</h2>
-            <p>{product.description}</p>
-            <p>
-              Price: ${(product.variants[0]?.price / 100).toFixed(2)}{" "}
-              {product.variants[0]?.currency_code}
-            </p>
-            <Link href={`/products/${product.id}`}>View 1-of-1 Piece &rarr;</Link>
-          </article>
-        ))}
-      </section>
-    </main>
+      <main id="main-content">
+        <HeroSection />
+        <FeatureStrip />
+
+        {/* Content area: Collections & New Arrivals in split grid layout on desktop */}
+        <div className="homepage-content-area container">
+          <div className="homepage-main-grid">
+            {/* Left Column: Collections */}
+            <div className="grid-column collections-column">
+              <CollectionsGrid />
+            </div>
+
+            {/* Right Column: New Arrivals */}
+            <div className="grid-column new-arrivals-column">
+              <section
+                id="new-arrivals"
+                className="new-arrivals-section"
+                aria-labelledby="new-arrivals-heading"
+              >
+                <div className="section-header">
+                  <h2 id="new-arrivals-heading" className="section-title">
+                    НОВОЕ ПОСТУПЛЕНИЕ
+                  </h2>
+                  <Link
+                    href="#catalog"
+                    className="section-link"
+                    aria-label="Смотреть все новые поступления"
+                  >
+                    СМОТРЕТЬ ВСЕ &rarr;
+                  </Link>
+                </div>
+
+                <ProductGrid products={products} error={error} />
+              </section>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

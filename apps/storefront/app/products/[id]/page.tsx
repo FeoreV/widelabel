@@ -14,23 +14,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const isAvailable = availability?.status === "available";
 
-  const sampleMeasurements = {
-    version: 1,
-    unit: "cm" as const,
-    fields: {
-      chest: 58,
-      length: 74,
-      shoulders: 52,
-      sleeve: 22,
-    },
-  };
-
-  const sampleArchivalNotes = {
-    era: "1990s",
-    provenance: "Curated archive, Japan release",
-    archive_code: "WL-90S-TEE-001",
-    story: "Original vintage single-stitched blank with custom hand-screened graphic.",
-  };
+  const metadata = product.metadata || {};
+  const measurements =
+    metadata.measurements && typeof metadata.measurements === "object"
+      ? (metadata.measurements as any)
+      : null;
+  const archivalNotes =
+    metadata.archival_notes && typeof metadata.archival_notes === "object"
+      ? (metadata.archival_notes as any)
+      : metadata.era || metadata.brand
+      ? { era: metadata.era, provenance: metadata.brand }
+      : null;
+  const conditionLabel = metadata.condition_label || null;
+  const conditionRating = typeof metadata.condition_rating === "number" ? metadata.condition_rating : null;
+  const conditionNotes = typeof metadata.condition_notes === "string" ? metadata.condition_notes : null;
+  const defects = Array.isArray(metadata.defects) ? metadata.defects : [];
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: "900px", margin: "0 auto" }}>
@@ -42,8 +40,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <p style={{ marginTop: "1.5rem" }}>{product.description}</p>
         <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-          ${(product.variants[0]?.price / 100).toFixed(2)}{" "}
-          {product.variants[0]?.currency_code}
+          {(product.variants[0]?.price / 100).toFixed(2)}{" "}
+          {product.variants[0]?.currency_code || "RUB"}
         </p>
 
         <div
@@ -62,18 +60,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div style={{ marginBottom: "2rem" }}>
           <AddToCartButton
             variantId={product.variants[0]?.id || `var_${id}`}
-            cartId="demo_cart_id"
+            cartId="wl_cart_id"
             isAvailable={isAvailable}
           />
         </div>
 
         <ProductDetails
-          measurements={sampleMeasurements}
-          conditionLabel="excellent"
-          conditionRating={5}
-          conditionNotes="Excellent vintage condition with light natural wear."
-          defects={[]}
-          archivalNotes={sampleArchivalNotes}
+          measurements={measurements}
+          conditionLabel={conditionLabel as any}
+          conditionRating={conditionRating}
+          conditionNotes={conditionNotes}
+          defects={defects}
+          archivalNotes={archivalNotes}
         />
       </div>
     </main>

@@ -1,4 +1,4 @@
-import type { MedusaContainer } from "@medusajs/framework/types";
+import type { MedusaContainer } from "@medusajs/framework";
 import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.ts";
 import { transitionReservationStatus } from "../modules/wide-label/domain/reservation-state-machine.ts";
 

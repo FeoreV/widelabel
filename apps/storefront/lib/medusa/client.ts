@@ -28,12 +28,21 @@ export class MedusaStorefrontClient {
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${path}`;
+    const publishableKey =
+      process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
+      process.env.MEDUSA_PUBLISHABLE_KEY ||
+      "pk_0f5bfcffb9885273914dc748f5afa0a5f8ffd41557ea1b9631422069f1c81989";
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    };
+    if (publishableKey) {
+      headers["x-publishable-api-key"] = publishableKey;
+    }
+
     const response = await fetch(url, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {

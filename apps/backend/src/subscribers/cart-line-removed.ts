@@ -1,6 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework";
-import type { IReservationRepository } from "../modules/wide-label/repositories/reservation-repository.ts";
-import { releaseReservationWorkflow } from "../workflows/release-reservation.ts";
+import type { IReservationRepository } from "../modules/wide-label/index.ts";
+import { releaseReservationWorkflow } from "../modules/wide-label/index.ts";
 
 export interface CartLineRemovedEventData {
   cart_id: string;

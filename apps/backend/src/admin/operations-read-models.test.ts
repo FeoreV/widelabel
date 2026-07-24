@@ -1,9 +1,9 @@
 import assert from "node:assert";
 import test from "node:test";
-import { OperationsReadModelsService } from "./operations-read-models.ts";
+import { InMemoryOperationsReadModelsService } from "./operations-read-models.ts";
 
 test("OperationsReadModelsService tracks active holds and expiring holds", () => {
-  const service = new OperationsReadModelsService();
+  const service = new InMemoryOperationsReadModelsService();
   const now = new Date("2026-07-21T12:00:00Z");
 
   // Hold 1: expires in 2 mins
@@ -20,7 +20,7 @@ test("OperationsReadModelsService tracks active holds and expiring holds", () =>
 });
 
 test("OperationsReadModelsService tracks payment failures and shipment failures", () => {
-  const service = new OperationsReadModelsService();
+  const service = new InMemoryOperationsReadModelsService();
 
   service.recordPaymentFailure({
     id: "pay_err_01",
@@ -49,7 +49,7 @@ test("OperationsReadModelsService tracks payment failures and shipment failures"
 });
 
 test("OperationsReadModelsService calculates webhook processing lag metrics", () => {
-  const service = new OperationsReadModelsService();
+  const service = new InMemoryOperationsReadModelsService();
 
   service.recordWebhookProcessingLag(120);
   service.recordWebhookProcessingLag(300);

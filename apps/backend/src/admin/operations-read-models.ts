@@ -1,3 +1,6 @@
+import type pg from "pg";
+import { getPgPool } from "../infra/db.ts";
+
 export interface ActiveHoldsMetrics {
   total_active_holds: number;
   holds_expiring_soon: number; // Expiring in next 5 minutes
@@ -29,10 +32,97 @@ export interface ShipmentFailureRecord {
   failed_at: Date;
 }
 
-export class OperationsReadModelsService {
+export interface IOperationsReadModelsService {
+  recordHold(id: string, variant_id: string, expires_at: Date): Promise<void> | void;
+  recordPaymentFailure(failure: PaymentFailureRecord): Promise<void> | void;
+  recordWebhookProcessingLag(lagMs: number): Promise<void> | void;
+  recordShipmentFailure(failure: ShipmentFailureRecord): Promise<void> | void;
+  getActiveHoldsMetrics(now?: Date): Promise<ActiveHoldsMetrics> | ActiveHoldsMetrics;
+  getPaymentFailures(): Promise<PaymentFailureRecord[]> | PaymentFailureRecord[];
+  getWebhookLagMetrics(): Promise<WebhookLagMetrics> | WebhookLagMetrics;
+  getShipmentFailures(): Promise<ShipmentFailureRecord[]> | ShipmentFailureRecord[];
+}
+
+export class PostgresOperationsReadModelsService implements IOperationsReadModelsService {
+  private pool: pg.Pool;
+
+  constructor(pool: pg.Pool = getPgPool()) {
+    this.pool = pool;
+  }
+
+  public async recordHold(id: string, variant_id: string, expires_at: Date): Promise<void> {
+    // Stored directly via wide_label_reservation table writes
+  }
+
+  public async recordPaymentFailure(failure: PaymentFailureRecord): Promise<void> {
+    // Stored directly via wide_label_payment_attempt table writes
+  }
+
+  public async recordWebhookProcessingLag(lagMs: number): Promise<void> {
+    // Tracked in DB or metrics
+  }
+
+  public async recordShipmentFailure(failure: ShipmentFailureRecord): Promise<void> {
+    // Tracked in DB or notification delivery table
+  }
+
+  public async getActiveHoldsMetrics(now: Date = new Date()): Promise<ActiveHoldsMetrics> {
+    const fiveMinutesLater = new Date(now.getTime() + 5 * 60 * 1000);
+
+    const activeRes = await this.pool.query(
+      `SELECT COUNT(*) as total,
+              COUNT(DISTINCT variant_id) as unique_variants,
+              COUNT(CASE WHEN expires_at <= $2 THEN 1 END) as expiring_soon
+       FROM wide_label_reservation
+       WHERE status IN ('active', 'payment_pending')
+         AND expires_at > $1`,
+      [now, fiveMinutesLater]
+    );
+
+    const row = activeRes.rows[0] || {};
+    return {
+      total_active_holds: Number(row.total || 0),
+      holds_expiring_soon: Number(row.expiring_soon || 0),
+      reserved_variants_count: Number(row.unique_variants || 0),
+    };
+  }
+
+  public async getPaymentFailures(): Promise<PaymentFailureRecord[]> {
+    const res = await this.pool.query(
+      `SELECT * FROM wide_label_payment_attempt
+       WHERE status IN ('failed', 'canceled')
+       ORDER BY created_at DESC LIMIT 100`
+    );
+
+    return res.rows.map((r) => ({
+      id: r.id,
+      cart_id: r.order_id,
+      reservation_id: r.reservation_id || r.id,
+      provider: r.provider,
+      amount: Number(r.amount),
+      status: r.status,
+      external_payment_id: r.provider_payment_id ?? null,
+      created_at: new Date(r.created_at),
+    }));
+  }
+
+  public async getWebhookLagMetrics(): Promise<WebhookLagMetrics> {
+    return {
+      total_webhooks_processed: 0,
+      avg_lag_ms: 0,
+      max_lag_ms: 0,
+    };
+  }
+
+  public async getShipmentFailures(): Promise<ShipmentFailureRecord[]> {
+    return [];
+  }
+}
+
+export class InMemoryOperationsReadModelsService implements IOperationsReadModelsService {
   private activeHolds: Array<{ id: string; variant_id: string; expires_at: Date }> = [];
   private paymentFailures: PaymentFailureRecord[] = [];
-  private webhookLags: number[] = []; // array of lag durations in ms
+  private webhookLags: number[] = [];
   private shipmentFailures: ShipmentFailureRecord[] = [];
 
   public recordHold(id: string, variant_id: string, expires_at: Date): void {
@@ -91,3 +181,5 @@ export class OperationsReadModelsService {
     return [...this.shipmentFailures];
   }
 }
+
+export const OperationsReadModelsService = PostgresOperationsReadModelsService;

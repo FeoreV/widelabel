@@ -1,10 +1,10 @@
 import assert from "node:assert";
 import test from "node:test";
-import { AdminProductExtensionService } from "./product-extension.ts";
+import { InMemoryAdminProductExtensionService } from "./product-extension.ts";
 import { OrderSnapshotRepository } from "../modules/wide-label/models/order-snapshot.ts";
 
 test("AdminProductExtensionService updates product metadata while leaving OrderSnapshot untouched", async () => {
-  const adminService = new AdminProductExtensionService();
+  const adminService = new InMemoryAdminProductExtensionService();
   const snapshotRepo = new OrderSnapshotRepository();
 
   // Create an existing snapshot

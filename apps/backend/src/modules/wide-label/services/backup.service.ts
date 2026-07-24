@@ -1,4 +1,6 @@
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 /**
  * Backup/restore rehearsal service for PostgreSQL data.
@@ -40,7 +42,6 @@ export class BackupChecksumError extends Error {
 }
 
 function deriveKey(secret: string): Buffer {
-  // Deterministic key derivation from secret (PBKDF2-like, simplified for rehearsal)
   return createHash("sha256").update(secret).digest();
 }
 
@@ -50,13 +51,12 @@ export function encryptBackup(plaintext: Buffer, encryptionKey: string): Buffer 
   }
 
   const key = deriveKey(encryptionKey);
-  const iv = randomBytes(12); // 96-bit IV for AES-256-GCM
+  const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
 
   const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
-  // Format: [iv(12)] [authTag(16)] [ciphertext]
   return Buffer.concat([iv, authTag, encrypted]);
 }
 
@@ -87,9 +87,18 @@ export function computeChecksum(data: Buffer): string {
 export class BackupService {
   private encryptionKey: string;
   private storedBackups = new Map<string, { ciphertext: Buffer; manifest: BackupManifest }>();
+  private backupDir: string;
 
   constructor(encryptionKey: string = process.env.BACKUP_ENCRYPTION_KEY || "") {
     this.encryptionKey = encryptionKey;
+    this.backupDir = path.join(process.cwd(), ".backups");
+    try {
+      if (!fs.existsSync(this.backupDir)) {
+        fs.mkdirSync(this.backupDir, { recursive: true });
+      }
+    } catch {
+      // Fallback to memory if directory creation restricted
+    }
   }
 
   public createBackup(tables: string[], data: Buffer): BackupManifest {
@@ -107,11 +116,39 @@ export class BackupService {
     };
 
     this.storedBackups.set(backup_id, { ciphertext, manifest });
+
+    try {
+      if (fs.existsSync(this.backupDir)) {
+        const filePath = path.join(this.backupDir, `${backup_id}.enc`);
+        const manifestPath = path.join(this.backupDir, `${backup_id}.json`);
+        fs.writeFileSync(filePath, ciphertext);
+        fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+      }
+    } catch {
+      // Persistent save attempt
+    }
+
     return manifest;
   }
 
   public restoreBackup(backup_id: string): RestoreResult {
-    const entry = this.storedBackups.get(backup_id);
+    let entry = this.storedBackups.get(backup_id);
+
+    if (!entry) {
+      try {
+        const filePath = path.join(this.backupDir, `${backup_id}.enc`);
+        const manifestPath = path.join(this.backupDir, `${backup_id}.json`);
+        if (fs.existsSync(filePath) && fs.existsSync(manifestPath)) {
+          const ciphertext = fs.readFileSync(filePath);
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+          entry = { ciphertext, manifest };
+          this.storedBackups.set(backup_id, entry);
+        }
+      } catch {
+        // Disk lookup attempt
+      }
+    }
+
     if (!entry) {
       throw new Error(`Backup ${backup_id} not found`);
     }

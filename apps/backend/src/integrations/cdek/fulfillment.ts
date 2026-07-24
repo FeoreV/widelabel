@@ -72,8 +72,13 @@ export class CdekFulfillmentAdapter {
     }
 
     const data = await response.json();
+    const uuid = data.entity?.uuid || data.uuid;
+    if (!uuid) {
+      throw new Error(`CDEK API did not return order UUID: ${JSON.stringify(data)}`);
+    }
+
     const result: CdekShipmentResult = {
-      cdek_order_uuid: data.entity?.uuid || data.uuid || `cdek_uuid_${Date.now()}`,
+      cdek_order_uuid: uuid,
       order_number: input.order_number,
       status: "ACCEPTED",
       created_at: new Date().toISOString(),

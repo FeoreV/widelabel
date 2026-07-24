@@ -69,6 +69,7 @@ COPY --from=builder /app/packages/types/dist  ./packages/types/dist
 COPY --from=builder /app/packages/types/src   ./packages/types/src
 COPY --from=builder /app/apps/storefront/.next/standalone ./
 COPY --from=builder /app/apps/storefront/.next/static     ./apps/storefront/.next/static
+COPY --from=builder /app/apps/storefront/public           ./apps/storefront/public
 
 WORKDIR /app/apps/storefront
 

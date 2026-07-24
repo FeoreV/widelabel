@@ -1,4 +1,4 @@
-import type { ReservationStatus } from "../models/reservation.js";
+import type { ReservationStatus } from "../models/reservation.ts";
 
 export const ALLOWED_TRANSITIONS: Record<
   ReservationStatus,

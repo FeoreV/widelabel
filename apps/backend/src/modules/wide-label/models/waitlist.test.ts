@@ -11,10 +11,10 @@ test("normalizeEmail and normalizeTelegramHandle clean inputs", () => {
   assert.strictEqual(normalizeTelegramHandle(" @some_handle "), "some_handle");
 });
 
-test("InMemoryWaitlistRepository creates entry and deduplicates repeat submissions", () => {
+test("InMemoryWaitlistRepository creates entry and deduplicates repeat submissions", async () => {
   const repo = new InMemoryWaitlistRepository();
 
-  const entry1 = repo.create({
+  const entry1 = await repo.create({
     variant_id: "var_wl_01",
     email: "  customer@domain.com ",
     channel: "email",
@@ -23,8 +23,7 @@ test("InMemoryWaitlistRepository creates entry and deduplicates repeat submissio
 
   assert.strictEqual(entry1.email, "customer@domain.com");
 
-  // Duplicate submission with different casing
-  const entry2 = repo.create({
+  const entry2 = await repo.create({
     variant_id: "var_wl_01",
     email: "CUSTOMER@DOMAIN.COM",
     channel: "email",
@@ -33,15 +32,15 @@ test("InMemoryWaitlistRepository creates entry and deduplicates repeat submissio
 
   assert.strictEqual(entry2.id, entry1.id, "Deduplicated repeat submission must return existing entry");
 
-  const active = repo.findActiveByVariant("var_wl_01");
+  const active = await repo.findActiveByVariant("var_wl_01");
   assert.strictEqual(active.length, 1);
 });
 
-test("InMemoryWaitlistRepository requires consent version", () => {
+test("InMemoryWaitlistRepository requires consent version", async () => {
   const repo = new InMemoryWaitlistRepository();
 
-  assert.throws(
-    () =>
+  await assert.rejects(
+    async () =>
       repo.create({
         variant_id: "var_wl_02",
         email: "test@domain.com",

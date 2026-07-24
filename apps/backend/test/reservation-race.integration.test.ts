@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { InMemoryReservationRepository } from "../src/modules/wide-label/repositories/reservation-repository.ts";
-import { reserveVariantWorkflow, ItemHeldError } from "../src/workflows/reserve-variant.ts";
+import { reserveVariantWorkflow, ItemHeldError } from "../src/modules/wide-label/domain-workflows/reserve-variant.ts";
 import { processReservationExpirationJob } from "../src/jobs/reservation-expiration.worker.ts";
 import { runReservationSweeperBatch } from "../src/jobs/reservation-sweeper.worker.ts";
 import { RedisLockService } from "../src/integrations/redis/lock.ts";

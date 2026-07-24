@@ -2,12 +2,12 @@
   "name": "@wide-label/backend",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "medusa dev",
+    "dev": "medusa develop",
+    "build": "medusa build",
+    "prestart": "medusa build",
     "start": "medusa start",
-    "build": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "node --test --import tsx src/**/*.test.ts test/**/*.test.ts"
@@ -15,17 +15,31 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1091.0",
     "@aws-sdk/s3-request-presigner": "^3.1091.0",
+    "@medusajs/admin-sdk": "2.17.2",
+    "@medusajs/admin-shared": "^2.5.1",
     "@medusajs/cli": "^2.5.1",
+    "@medusajs/dashboard": "^2.5.1",
+    "@medusajs/draft-order": "^2.5.1",
     "@medusajs/framework": "^2.5.1",
+    "@medusajs/icons": "^2.5.1",
     "@medusajs/medusa": "^2.5.1",
+    "@medusajs/ui": "^4.1.19",
     "@medusajs/utils": "^2.5.1",
     "@wide-label/config": "workspace:*",
     "@wide-label/types": "workspace:*",
     "bullmq": "^5.80.9",
-    "ioredis": "^5.11.1"
+    "ioredis": "^5.11.1",
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/ioredis": "^5.0.0",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.0"

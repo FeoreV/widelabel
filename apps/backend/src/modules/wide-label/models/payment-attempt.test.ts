@@ -5,11 +5,11 @@ import {
   DuplicateIdempotencyKeyError,
 } from "./payment-attempt.ts";
 
-test("InMemoryPaymentAttemptRepository creates and looks up attempt by idempotency key", () => {
+test("InMemoryPaymentAttemptRepository creates and looks up attempt by idempotency key", async () => {
   const repo = new InMemoryPaymentAttemptRepository();
   const now = new Date();
 
-  const attempt = repo.create({
+  const attempt = await repo.create({
     id: "pay_01",
     idempotency_key: "idem_cart_01_attempt_1",
     cart_id: "cart_01",
@@ -25,16 +25,16 @@ test("InMemoryPaymentAttemptRepository creates and looks up attempt by idempoten
   assert.strictEqual(attempt.id, "pay_01");
   assert.strictEqual(attempt.status, "pending");
 
-  const lookedUp = repo.findByIdempotencyKey("idem_cart_01_attempt_1");
+  const lookedUp = await repo.findByIdempotencyKey("idem_cart_01_attempt_1");
   assert.ok(lookedUp);
   assert.strictEqual(lookedUp.id, "pay_01");
 });
 
-test("InMemoryPaymentAttemptRepository rejects duplicate idempotency key", () => {
+test("InMemoryPaymentAttemptRepository rejects duplicate idempotency key", async () => {
   const repo = new InMemoryPaymentAttemptRepository();
   const now = new Date();
 
-  repo.create({
+  await repo.create({
     id: "pay_01",
     idempotency_key: "idem_dup_key",
     cart_id: "cart_01",
@@ -47,8 +47,8 @@ test("InMemoryPaymentAttemptRepository rejects duplicate idempotency key", () =>
     updated_at: now,
   });
 
-  assert.throws(() => {
-    repo.create({
+  await assert.rejects(async () => {
+    await repo.create({
       id: "pay_02",
       idempotency_key: "idem_dup_key",
       cart_id: "cart_01",
@@ -63,11 +63,11 @@ test("InMemoryPaymentAttemptRepository rejects duplicate idempotency key", () =>
   }, DuplicateIdempotencyKeyError);
 });
 
-test("InMemoryPaymentAttemptRepository updates status and external_payment_id", () => {
+test("InMemoryPaymentAttemptRepository updates status and external_payment_id", async () => {
   const repo = new InMemoryPaymentAttemptRepository();
   const now = new Date();
 
-  repo.create({
+  await repo.create({
     id: "pay_03",
     idempotency_key: "idem_status_test",
     cart_id: "cart_01",
@@ -80,7 +80,7 @@ test("InMemoryPaymentAttemptRepository updates status and external_payment_id", 
     updated_at: now,
   });
 
-  const updated = repo.updateStatus("pay_03", "succeeded", "ext_pay_12345");
+  const updated = await repo.updateStatus("pay_03", "succeeded", "ext_pay_12345");
   assert.strictEqual(updated.status, "succeeded");
   assert.strictEqual(updated.external_payment_id, "ext_pay_12345");
 });

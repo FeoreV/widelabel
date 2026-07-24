@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { InMemoryReservationRepository } from "../src/modules/wide-label/repositories/reservation-repository.ts";
-import { reserveVariantWorkflow, ItemHeldError } from "../src/workflows/reserve-variant.ts";
+import { reserveVariantWorkflow, ItemHeldError } from "../src/modules/wide-label/domain-workflows/reserve-variant.ts";
 
 test("Load Test: High-concurrency 1-of-1 inventory drop holds (500 concurrent requests)", async () => {
   const repo = new InMemoryReservationRepository();

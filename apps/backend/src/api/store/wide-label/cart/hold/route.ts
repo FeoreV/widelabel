@@ -4,13 +4,13 @@ import {
   type CartHoldResponse,
   type ErrorResponse,
 } from "@wide-label/types";
-import { InMemoryReservationRepository } from "../../../../../modules/wide-label/repositories/reservation-repository.ts";
 import {
+  PostgresReservationRepository,
   reserveVariantWorkflow,
   ItemHeldError,
-} from "../../../../../workflows/reserve-variant.ts";
+} from "../../../../../modules/wide-label/index.ts";
 
-export const defaultRepository = new InMemoryReservationRepository();
+export const defaultRepository = new PostgresReservationRepository();
 
 export const POST = async (
   req: MedusaRequest,
@@ -29,7 +29,7 @@ export const POST = async (
   }
 
   const { variant_id, cart_id, session_fingerprint } = parseResult.data;
-  const repo: InMemoryReservationRepository =
+  const repo: PostgresReservationRepository =
     (req as any).scope?.resolve("reservationRepository") || defaultRepository;
 
   try {
