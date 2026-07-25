@@ -8,8 +8,32 @@ on:
 
 jobs:
   verify:
-    name: Verify Base Codebase
+    name: Verify Base Codebase & Integration Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: wide_label
+          POSTGRES_USER: wide_label
+          POSTGRES_PASSWORD: wide_label
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,11 +55,23 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Run unit & integration tests
-        run: pnpm test
+      - name: Run Unit Tests
+        run: pnpm test:unit
+
+      - name: Run PostgreSQL & Redis Integration Tests
+        run: pnpm test:integration
+        env:
+          DATABASE_URL: postgres://wide_label:wide_label@localhost:5432/wide_label
+          REDIS_URL: redis://localhost:6379
 
       - name: Build applications
         run: pnpm build
 
       - name: Validate Docker Compose Configuration
         run: pnpm docker:config
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter @wide-label/storefront exec playwright install --with-deps chromium
+
+      - name: Note on End-to-End Playwright Tests
+        run: echo "Full E2E Playwright tests require running Medusa backend container on port 9000. Run pnpm test:e2e after launching local docker service environment."

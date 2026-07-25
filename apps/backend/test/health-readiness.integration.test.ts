@@ -24,6 +24,8 @@ test("Health & Readiness: liveness endpoint returns 200 OK live status", async (
   assert.strictEqual(responseData.status, "ok");
 });
 
+import { closePgPool } from "../src/infra/db.ts";
+
 test("Health & Readiness: readiness endpoint verifies PostgreSQL and Redis status", async () => {
   let statusCode = 0;
   let responseData: any = null;
@@ -45,4 +47,11 @@ test("Health & Readiness: readiness endpoint verifies PostgreSQL and Redis statu
   assert.strictEqual(responseData.status, "ready");
   assert.strictEqual(responseData.postgres, "ok");
   assert.strictEqual(responseData.redis, "ok");
+
+  await closePgPool();
 });
+
+test.after(async () => {
+  await closePgPool();
+});
+

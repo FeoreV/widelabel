@@ -3,7 +3,7 @@ import Redis from "ioredis";
 import { getPgPool } from "../../infra/db.ts";
 
 export const GET = async (_req: MedusaRequest, res: MedusaResponse): Promise<void> => {
-  const timeoutMs = 2000;
+  const timeoutMs = 5000;
 
   try {
     const pgCheck = Promise.race([
@@ -11,13 +11,21 @@ export const GET = async (_req: MedusaRequest, res: MedusaResponse): Promise<voi
       new Promise((_, reject) => setTimeout(() => reject(new Error("PG timeout")), timeoutMs)),
     ]);
 
-    const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
-      connectTimeout: timeoutMs,
-      maxRetriesPerRequest: 1,
-    });
+    const pingRedis = async () => {
+      const redis = new Redis(process.env.REDIS_URL || "redis://127.0.0.1:6379", {
+        connectTimeout: timeoutMs,
+        maxRetriesPerRequest: null,
+        family: 4,
+      });
+      try {
+        await redis.ping();
+      } finally {
+        redis.disconnect();
+      }
+    };
 
     const redisCheck = Promise.race([
-      redis.ping().finally(() => redis.quit()),
+      pingRedis(),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), timeoutMs)),
     ]);
 

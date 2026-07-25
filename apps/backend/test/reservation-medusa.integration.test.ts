@@ -3,7 +3,7 @@ import test from "node:test";
 import { PostgresReservationRepository } from "../src/modules/wide-label/repositories/reservation-repository.ts";
 import { reserveVariantWorkflow, ItemHeldError } from "../src/modules/wide-label/domain-workflows/reserve-variant.ts";
 import { handleCartLineRemoved } from "../src/subscribers/cart-line-removed.ts";
-import { getPgPool } from "../src/infra/db.ts";
+import { getPgPool, closePgPool } from "../src/infra/db.ts";
 
 test("P0-A Integration: real PostgreSQL reservation lifecycle and 1-of-1 invariant", async () => {
   const pool = getPgPool();
@@ -52,4 +52,11 @@ test("P0-A Integration: real PostgreSQL reservation lifecycle and 1-of-1 invaria
   // 6. Repeated removal is idempotent
   const repeatRelease = await handleCartLineRemoved(repo, { cart_id: cartA, variant_id: variantId }, new Date());
   assert.strictEqual(repeatRelease, false);
+
+  await closePgPool();
 });
+
+test.after(async () => {
+  await closePgPool();
+});
+

@@ -12,7 +12,7 @@ export class BullMQReservationQueueService {
   private worker: Worker | null = null;
   private sweeperInterval: NodeJS.Timeout | null = null;
 
-  constructor(redisUrl: string = process.env.REDIS_URL || "redis://localhost:6379") {
+  constructor(redisUrl: string = process.env.REDIS_URL || "redis://127.0.0.1:6379") {
     this.redis = new Redis(redisUrl, { maxRetriesPerRequest: null });
     this.queue = new Queue(QUEUE_NAME, { connection: this.redis });
   }
@@ -80,3 +80,20 @@ export class BullMQReservationQueueService {
     return this.queue;
   }
 }
+
+let defaultQueueService: BullMQReservationQueueService | null = null;
+
+export function getReservationQueueService(): BullMQReservationQueueService {
+  if (!defaultQueueService) {
+    defaultQueueService = new BullMQReservationQueueService();
+  }
+  return defaultQueueService;
+}
+
+export async function stopReservationQueueService(): Promise<void> {
+  if (defaultQueueService) {
+    await defaultQueueService.stop();
+    defaultQueueService = null;
+  }
+}
+

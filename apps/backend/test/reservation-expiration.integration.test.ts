@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test from "node:test";
 import { PostgresReservationRepository } from "../src/modules/wide-label/repositories/reservation-repository.ts";
 import { processReservationExpirationJob } from "../src/jobs/reservation-expiration.worker.ts";
-import { getPgPool } from "../src/infra/db.ts";
+import { getPgPool, closePgPool } from "../src/infra/db.ts";
 
 test("P0-C Integration: Expiration worker releases reservation past expires_at", async () => {
   const pool = getPgPool();
@@ -39,4 +39,11 @@ test("P0-C Integration: Expiration worker releases reservation past expires_at",
     now
   );
   assert.strictEqual(repeat.processed, false);
+
+  await closePgPool();
 });
+
+test.after(async () => {
+  await closePgPool();
+});
+

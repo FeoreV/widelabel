@@ -92,3 +92,13 @@ test("POST hold returns 409 ITEM_HELD error contract when another customer holds
     retryable: false,
   });
 });
+
+import { closePgPool } from "../../../infra/db.ts";
+import { stopReservationQueueService } from "../../../jobs/bullmq-reservation-queue.ts";
+
+test.after(async () => {
+  await stopReservationQueueService();
+  await closePgPool();
+});
+
+

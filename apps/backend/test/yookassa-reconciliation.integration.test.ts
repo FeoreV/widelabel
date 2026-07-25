@@ -8,7 +8,7 @@ import { reserveVariantWorkflow } from "../src/modules/wide-label/domain-workflo
 import { initiatePaymentWorkflow } from "../src/modules/wide-label/domain-workflows/initiate-payment.ts";
 import { processPaymentWebhookWorkflow } from "../src/modules/wide-label/domain-workflows/process-payment-webhook.ts";
 import { createOrderSnapshotWorkflow } from "../src/modules/wide-label/domain-workflows/create-order-snapshot.ts";
-import { getPgPool } from "../src/infra/db.ts";
+import { getPgPool, closePgPool } from "../src/infra/db.ts";
 
 test("P0-E Integration: Complete YooKassa payment reconciliation and idempotent order creation", async () => {
   const pool = getPgPool();
@@ -200,4 +200,11 @@ test("P0-E Integration: Webhook payload mismatch rejections", async () => {
       }),
     /Payment amount\/currency mismatch/
   );
+
+  await closePgPool();
 });
+
+test.after(async () => {
+  await closePgPool();
+});
+

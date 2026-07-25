@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test from "node:test";
 import { PostgresReservationRepository } from "../src/modules/wide-label/repositories/reservation-repository.ts";
 import { reserveVariantWorkflow, ItemHeldError } from "../src/modules/wide-label/domain-workflows/reserve-variant.ts";
-import { getPgPool } from "../src/infra/db.ts";
+import { getPgPool, closePgPool } from "../src/infra/db.ts";
 
 test("P0-B Integration: Real PostgreSQL & Redis Concurrency Race for 1-of-1 Item", async () => {
   const pool = getPgPool();
@@ -71,4 +71,11 @@ test("P0-B Integration: Direct PostgreSQL Partial Unique Index Violation Enforce
       }, now),
     (err: any) => err.code === "23505" || err.message?.includes("uq_wl_one_open_reservation_per_variant")
   );
+
+  await closePgPool();
 });
+
+test.after(async () => {
+  await closePgPool();
+});
+

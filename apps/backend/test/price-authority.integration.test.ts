@@ -5,7 +5,7 @@ import { PostgresPaymentAttemptRepository } from "../src/modules/wide-label/mode
 import { YooKassaClient } from "../src/integrations/yookassa/client.ts";
 import { reserveVariantWorkflow } from "../src/modules/wide-label/domain-workflows/reserve-variant.ts";
 import { initiatePaymentWorkflow } from "../src/modules/wide-label/domain-workflows/initiate-payment.ts";
-import { getPgPool } from "../src/infra/db.ts";
+import { getPgPool, closePgPool } from "../src/infra/db.ts";
 
 test("P0-F Integration: Client price and currency tampering is strictly ignored in favor of server authority", async () => {
   const pool = getPgPool();
@@ -61,4 +61,11 @@ test("P0-F Integration: Client price and currency tampering is strictly ignored 
   assert.strictEqual(result.payment_attempt.currency_code, "RUB");
   assert.strictEqual(capturedAmount, authoritativeServerAmount);
   assert.strictEqual(capturedCurrency, "RUB");
+
+  await closePgPool();
 });
+
+test.after(async () => {
+  await closePgPool();
+});
+

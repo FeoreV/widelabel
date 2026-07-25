@@ -7,7 +7,7 @@ export function getPgPool(): pg.Pool {
     const connectionString =
       process.env.DATABASE_URL ||
       process.env.POSTGRES_URL ||
-      "postgres://wide_label:wide_label@localhost:5432/wide_label";
+      "postgres://wide_label:wide_label@127.0.0.1:5432/wide_label";
     pool = new pg.Pool({ connectionString });
   }
   return pool;
