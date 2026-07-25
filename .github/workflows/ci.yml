@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U wide_label -d wide_label"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -55,11 +55,8 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Run Unit Tests
-        run: pnpm test:unit
-
-      - name: Run PostgreSQL & Redis Integration Tests
-        run: pnpm test:integration
+      - name: Run Test Suites
+        run: pnpm test
         env:
           DATABASE_URL: postgres://wide_label:wide_label@localhost:5432/wide_label
           REDIS_URL: redis://localhost:6379
