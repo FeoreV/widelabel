@@ -1,17 +1,43 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { Link as LinkPrimitive } from "../ui/link";
 
-export function SiteHeader() {
+export interface SiteHeaderProps {
+  cartCount?: number;
+  onOpenCart?: () => void;
+}
+
+export function SiteHeader({ cartCount = 0, onOpenCart }: SiteHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
+
+  const navItems = [
+    { label: "КАТАЛОГ", href: "/products" },
+    { label: "КОЛЛЕКЦИИ", href: "/#collections" },
+    { label: "О КОНЦЕПТЕ", href: "/#concept" },
+    { label: "ИСТОРИЯ", href: "/#story" },
+    { label: "ДОСТАВКА", href: "/#shipping" },
+  ];
 
   return (
     <header className="site-header">
       <div className="header-inner container">
-        {/* Left: Brand Logo */}
+        {/* Left: Brand Logo / Wordmark */}
         <div className="header-brand">
-          <Link href="/" className="logo-link" aria-label="WIDE LABEL главная страница">
+          <Link href="/" className="logo-link" aria-label="WIDE LABEL — главная страница">
             WIDE LABEL
           </Link>
         </div>
@@ -19,82 +45,28 @@ export function SiteHeader() {
         {/* Center: Desktop Navigation */}
         <nav className="desktop-nav" aria-label="Главная навигация">
           <ul className="nav-list">
-            <li>
-              <Link href="#catalog" className="nav-link">
-                КАТАЛОГ
-              </Link>
-            </li>
-            <li>
-              <Link href="#collections" className="nav-link">
-                КОЛЛЕКЦИИ
-              </Link>
-            </li>
-            <li>
-              <Link href="#about" className="nav-link">
-                О НАС
-              </Link>
-            </li>
-            <li>
-              <Link href="#shipping" className="nav-link">
-                ДОСТАВКА
-              </Link>
-            </li>
-            <li>
-              <Link href="#contacts" className="nav-link">
-                КОНТАКТЫ
-              </Link>
-            </li>
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <LinkPrimitive
+                  href={item.href}
+                  variant="nav"
+                  active={pathname === item.href}
+                >
+                  {item.label}
+                </LinkPrimitive>
+              </li>
+            ))}
           </ul>
         </nav>
 
-        {/* Right: Actions */}
+        {/* Right: Actions (Cart & Mobile Menu Toggle) */}
         <div className="header-actions">
-          <button
-            type="button"
-            className="action-btn"
-            aria-label="Поиск по сайту"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </button>
-
-          <button
-            type="button"
-            className="action-btn"
-            aria-label="Личный кабинет"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </button>
-
+          {/* Cart Button */}
           <button
             type="button"
             className="action-btn cart-action-btn"
-            aria-label="Корзина, 0 товаров"
+            onClick={onOpenCart}
+            aria-label={`Корзина, ${cartCount} ${cartCount === 1 ? "товар" : "товаров"}`}
           >
             <svg
               width="20"
@@ -112,7 +84,7 @@ export function SiteHeader() {
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             <span className="cart-badge" aria-hidden="true">
-              0
+              {cartCount}
             </span>
           </button>
 
@@ -164,51 +136,17 @@ export function SiteHeader() {
       {isMobileMenuOpen && (
         <nav className="mobile-nav" aria-label="Мобильная навигация">
           <ul className="mobile-nav-list">
-            <li>
-              <Link
-                href="#catalog"
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                КАТАЛОГ
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#collections"
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                КОЛЛЕКЦИИ
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#about"
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                О НАС
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#shipping"
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                ДОСТАВКА
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#contacts"
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                КОНТАКТЫ
-              </Link>
-            </li>
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="mobile-nav-link"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
       )}

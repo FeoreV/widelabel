@@ -1,4 +1,7 @@
 import type { Measurements, Defect, ConditionLabel } from "@wide-label/types";
+import { Typography } from "../ui/typography";
+import { Divider } from "../ui/divider";
+import { Badge } from "../ui/badge";
 
 export interface ArchivalNotes {
   era?: string;
@@ -14,6 +17,7 @@ export interface ProductDetailsProps {
   conditionNotes?: string | null;
   defects?: Defect[] | null;
   archivalNotes?: ArchivalNotes | null;
+  material?: string | null;
 }
 
 export function ProductDetails({
@@ -23,98 +27,178 @@ export function ProductDetails({
   conditionNotes,
   defects = [],
   archivalNotes,
+  material,
 }: ProductDetailsProps) {
   const fields = measurements?.fields;
-  const unit = measurements?.unit || "cm";
+  const unit = (measurements?.unit || "см").toLowerCase();
 
   return (
-    <div style={{ display: "grid", gap: "1.5rem", marginTop: "1.5rem" }}>
-      {/* Measurements Section */}
+    <div className="product-details-container" style={{ display: "flex", flexDirection: "column", gap: "28px", marginTop: "32px" }}>
+      {/* 1. Measurements Section */}
       {fields && (
-        <section style={{ borderTop: "1px solid #eee", paddingTop: "1rem" }}>
-          <h3>Measurements ({unit})</h3>
-          <dl
+        <section aria-labelledby="measurements-heading">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            <Typography id="measurements-heading" variant="label">
+              ЗАМЕРЫ ИЗДЕЛИЯ ({unit.toUpperCase()})
+            </Typography>
+            <Typography variant="caption" style={{ color: "var(--accent-lime)" }}>
+              100% ВЕРИФИЦИРОВАННЫЙ ОБМЕР
+            </Typography>
+          </div>
+          <div
             style={{
               display: "grid",
-              gridTemplateColumns: "auto 1fr",
-              gap: "0.5rem 1rem",
+              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+              gap: "12px",
+              padding: "16px",
+              backgroundColor: "var(--bg-surface)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "var(--radius-sm)",
             }}
           >
             {fields.chest && (
-              <>
-                <dt style={{ fontWeight: "bold" }}>Chest:</dt>
-                <dd>
+              <div>
+                <Typography variant="caption" style={{ color: "var(--text-tertiary)", display: "block" }}>
+                  ГРУДЬ (CHEST)
+                </Typography>
+                <Typography variant="title-lg">
                   {fields.chest} {unit}
-                </dd>
-              </>
+                </Typography>
+              </div>
             )}
             {fields.length && (
-              <>
-                <dt style={{ fontWeight: "bold" }}>Length:</dt>
-                <dd>
+              <div>
+                <Typography variant="caption" style={{ color: "var(--text-tertiary)", display: "block" }}>
+                  ДЛИНА (LENGTH)
+                </Typography>
+                <Typography variant="title-lg">
                   {fields.length} {unit}
-                </dd>
-              </>
+                </Typography>
+              </div>
             )}
             {fields.sleeve && (
-              <>
-                <dt style={{ fontWeight: "bold" }}>Sleeve:</dt>
-                <dd>
+              <div>
+                <Typography variant="caption" style={{ color: "var(--text-tertiary)", display: "block" }}>
+                  РУКАВ (SLEEVE)
+                </Typography>
+                <Typography variant="title-lg">
                   {fields.sleeve} {unit}
-                </dd>
-              </>
+                </Typography>
+              </div>
             )}
             {fields.shoulders && (
-              <>
-                <dt style={{ fontWeight: "bold" }}>Shoulders:</dt>
-                <dd>
+              <div>
+                <Typography variant="caption" style={{ color: "var(--text-tertiary)", display: "block" }}>
+                  ПЛЕЧИ (SHOULDERS)
+                </Typography>
+                <Typography variant="title-lg">
                   {fields.shoulders} {unit}
-                </dd>
-              </>
+                </Typography>
+              </div>
             )}
-          </dl>
+          </div>
         </section>
       )}
 
-      {/* Condition & Defects Section */}
-      <section style={{ borderTop: "1px solid #eee", paddingTop: "1rem" }}>
-        <h3>Condition & Integrity</h3>
-        {conditionLabel && <p><strong>Condition:</strong> {conditionLabel}</p>}
-        {conditionRating && <p><strong>Rating:</strong> {conditionRating}/5</p>}
-        {conditionNotes && <p><strong>Notes:</strong> {conditionNotes}</p>}
+      {/* 2. Material */}
+      {material && (
+        <section aria-labelledby="material-heading">
+          <Typography id="material-heading" variant="label" style={{ marginBottom: "8px", display: "block" }}>
+            СОСТАВ И МАТЕРИАЛ
+          </Typography>
+          <Typography variant="body-md" style={{ color: "var(--text-secondary)" }}>
+            {material}
+          </Typography>
+        </section>
+      )}
 
-        {defects && defects.length > 0 ? (
-          <div>
-            <h4>Documented Defects</h4>
-            <ul>
-              {defects.map((defect, idx) => (
-                <li key={idx}>
-                  <strong>{defect.kind}</strong> ({defect.severity || "recorded"}):{" "}
-                  {defect.description}{" "}
-                  {defect.location ? `at ${defect.location}` : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p>No defects recorded.</p>
-        )}
+      <Divider />
+
+      {/* 3. Condition & Defects Section */}
+      <section aria-labelledby="condition-heading">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+          <Typography id="condition-heading" variant="label">
+            СОСТОЯНИЕ И ЦЕЛОСТНОСТЬ
+          </Typography>
+          {conditionRating && (
+            <Badge status="available" variant="pill">
+              ОЦЕНКА: {conditionRating}/5
+            </Badge>
+          )}
+        </div>
+
+        <div style={{ padding: "16px", backgroundColor: "var(--bg-surface)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)" }}>
+          {conditionLabel && (
+            <div style={{ marginBottom: "8px" }}>
+              <Typography variant="caption" style={{ color: "var(--text-tertiary)", display: "block" }}>
+                ГРАДАЦИЯ:
+              </Typography>
+              <Typography variant="title-lg" style={{ color: "var(--text-primary)" }}>
+                {conditionLabel}
+              </Typography>
+            </div>
+          )}
+          {conditionNotes && (
+            <Typography variant="body-sm" style={{ color: "var(--text-secondary)", marginTop: "6px", display: "block" }}>
+              {conditionNotes}
+            </Typography>
+          )}
+
+          {/* Defects list (Transparently disclosed) */}
+          {defects && defects.length > 0 ? (
+            <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px dashed var(--border-subtle)" }}>
+              <Typography variant="caption" style={{ color: "var(--state-reserved)", marginBottom: "8px", display: "block" }}>
+                ПРОТОКОЛИРОВАННЫЕ НЮАНСЫ И СЛЕДЫ ВРЕМЕНИ:
+              </Typography>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
+                {defects.map((defect, idx) => (
+                  <li key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "12px" }}>
+                    <span style={{ color: "var(--state-reserved)", fontWeight: 700 }}>&bull;</span>
+                    <div>
+                      <strong style={{ color: "var(--text-primary)", textTransform: "uppercase" }}>{defect.kind}</strong>
+                      {defect.severity ? ` [${defect.severity}]` : ""}: {defect.description}
+                      {defect.location ? ` (локация: ${defect.location})` : ""}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <Typography variant="caption" style={{ color: "var(--accent-lime)", marginTop: "12px", display: "block" }}>
+              &check; НИКАКИХ СКРЫТЫХ ДЕФЕКТОВ НЕ ОБНАРУЖЕНО
+            </Typography>
+          )}
+        </div>
       </section>
 
-      {/* Archival Notes Section */}
+      {/* 4. Archival History Section */}
       {archivalNotes && (
-        <section style={{ borderTop: "1px solid #eee", paddingTop: "1rem" }}>
-          <h3>Archival History</h3>
-          {archivalNotes.archive_code && (
-            <p><strong>Archive Ref:</strong> {archivalNotes.archive_code}</p>
-          )}
-          {archivalNotes.era && (
-            <p><strong>Era:</strong> {archivalNotes.era}</p>
-          )}
-          {archivalNotes.provenance && (
-            <p><strong>Provenance:</strong> {archivalNotes.provenance}</p>
-          )}
-          {archivalNotes.story && <p>{archivalNotes.story}</p>}
+        <section aria-labelledby="archival-heading">
+          <Typography id="archival-heading" variant="label" style={{ marginBottom: "12px", display: "block" }}>
+            АРХИВНАЯ СПРАВКА И ПРОВИЗОР
+          </Typography>
+          <div style={{ padding: "16px", backgroundColor: "var(--bg-surface)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)" }}>
+            {archivalNotes.archive_code && (
+              <Typography variant="caption" style={{ color: "var(--text-tertiary)", display: "block", marginBottom: "4px" }}>
+                ARCHIVE REF: {archivalNotes.archive_code}
+              </Typography>
+            )}
+            {archivalNotes.era && (
+              <Typography variant="body-sm" style={{ color: "var(--text-secondary)", marginBottom: "4px", display: "block" }}>
+                <strong>ЭПОХА / РЕЛИЗ:</strong> {archivalNotes.era}
+              </Typography>
+            )}
+            {archivalNotes.provenance && (
+              <Typography variant="body-sm" style={{ color: "var(--text-secondary)", marginBottom: "4px", display: "block" }}>
+                <strong>ПРОИСХОЖДЕНИЕ:</strong> {archivalNotes.provenance}
+              </Typography>
+            )}
+            {archivalNotes.story && (
+              <Typography variant="body-sm" style={{ color: "var(--text-primary)", marginTop: "8px", display: "block" }}>
+                {archivalNotes.story}
+              </Typography>
+            )}
+          </div>
         </section>
       )}
     </div>

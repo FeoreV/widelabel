@@ -12,16 +12,48 @@ export class MedusaClientError extends Error {
   constructor(errorResponse: ErrorResponse) {
     super(errorResponse.message);
     this.name = "MedusaClientError";
-    this.code = errorResponse.code;
-    this.retryable = errorResponse.retryable;
+    this.code = errorResponse.code || "MEDUSA_ERROR";
+    this.retryable = errorResponse.retryable ?? false;
   }
+}
+
+export interface CdekPvzItem {
+  code: string;
+  name: string;
+  address: string;
+  work_time?: string;
+  phone?: string;
+}
+
+export interface ShippingSubmitPayload {
+  cart_id: string;
+  shipping_option_id: string;
+  address: {
+    city: string;
+    street?: string;
+    pvz_code?: string;
+    postal_code?: string;
+  };
+}
+
+export interface PaymentSubmitPayload {
+  cart_id: string;
+  provider_id?: string;
+  consent_version?: string;
+}
+
+export interface PaymentSubmitResponse {
+  payment_attempt_id: string;
+  status: "pending" | "succeeded" | "failed";
+  redirect_url?: string;
+  client_secret?: string;
 }
 
 export class MedusaStorefrontClient {
   private baseUrl: string;
 
   constructor(
-    baseUrl: string = process.env.NEXT_PUBLIC_MEDUSA_URL || "http://localhost:9000"
+    baseUrl: string = process.env.NEXT_PUBLIC_MEDUSA_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000"
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
   }
@@ -73,5 +105,34 @@ export class MedusaStorefrontClient {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  }
+
+  async removeLineItem(cartId: string, lineId: string): Promise<{ cart: any }> {
+    return this.request<{ cart: any }>(
+      `/store/carts/${encodeURIComponent(cartId)}/line-items/${encodeURIComponent(lineId)}`,
+      { method: "DELETE" }
+    );
+  }
+
+  async submitShipping(payload: ShippingSubmitPayload): Promise<{ cart: any }> {
+    return this.request<{ cart: any }>("/store/wide-label/checkout/shipping", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async submitPayment(payload: PaymentSubmitPayload): Promise<PaymentSubmitResponse> {
+    return this.request<PaymentSubmitResponse>("/store/wide-label/checkout/payment", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getCdekPvzs(cityCode: string | number = 44): Promise<CdekPvzItem[]> {
+    const res = await this.request<{ pvzs?: CdekPvzItem[] } | CdekPvzItem[]>(
+      `/store/wide-label/shipping/cdek/pvz?city_code=${encodeURIComponent(cityCode)}`
+    );
+    if (Array.isArray(res)) return res;
+    return res.pvzs || [];
   }
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Typography } from "../ui/typography";
 
 export interface CollectionItem {
   id: string;
@@ -13,32 +14,36 @@ export function CollectionsGrid() {
     {
       id: "outerwear",
       title: "ВЕРХНЯЯ ОДЕЖДА",
-      href: "#outerwear",
+      href: "/#catalog",
+      countLabel: "1-OF-1 SELECTION",
     },
     {
       id: "sweatshirts",
       title: "СВИТШОТЫ И ХУДИ",
-      href: "#sweatshirts",
+      href: "/#catalog",
+      countLabel: "ARCHIVE PIECES",
     },
     {
       id: "jeans",
-      title: "ДЖИНСЫ",
-      href: "#jeans",
+      title: "ДЖИНСЫ & ДЕНИМ",
+      href: "/#catalog",
+      countLabel: "VINTAGE DENIM",
     },
     {
       id: "accessories",
       title: "АКСЕССУАРЫ",
-      href: "#accessories",
+      href: "/#catalog",
+      countLabel: "CURATED CAPS & BAGS",
     },
   ];
 
   return (
-    <section className="collections-section" aria-labelledby="collections-heading">
+    <section id="collections" className="collections-section" aria-labelledby="collections-heading">
       <div className="section-header">
-        <h2 id="collections-heading" className="section-title">
+        <Typography id="collections-heading" variant="headline-md" as="h2">
           КОЛЛЕКЦИИ
-        </h2>
-        <Link href="#collections" className="section-link" aria-label="Смотреть все коллекции">
+        </Typography>
+        <Link href="/#catalog" className="section-link" aria-label="Смотреть все коллекции">
           СМОТРЕТЬ ВСЕ &rarr;
         </Link>
       </div>
@@ -57,7 +62,14 @@ export function CollectionsGrid() {
               )}
               <div className="collection-card-overlay" aria-hidden="true" />
               <div className="collection-card-body">
-                <h3 className="collection-title">{item.title}</h3>
+                <Typography variant="title-lg" className="collection-title">
+                  {item.title}
+                </Typography>
+                {item.countLabel && (
+                  <Typography variant="caption" className="collection-count" style={{ color: "var(--accent-lime)" }}>
+                    {item.countLabel}
+                  </Typography>
+                )}
               </div>
             </Link>
           </article>

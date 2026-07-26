@@ -15,12 +15,12 @@ test.describe("Cart & Hold Strict E2E Workflows", () => {
 
     await page.goto(targetUrl!);
 
-    const addBtn = page.getByRole("button", { name: /Add to Cart/i });
+    const addBtn = page.getByRole("button", { name: /Add to Cart|ЗАБРОНИРОВАТЬ/i });
     await expect(addBtn).toBeVisible({ timeout: 5000 });
     await addBtn.click();
 
     await expect(
-      page.getByText(/1-of-1 Piece Reserved in Cart|Item held until|Reserved/i)
+      page.getByText(/1-of-1 Piece Reserved in Cart|Item held until|Reserved|ЗАБРОНИРОВАНА/i)
     ).toBeVisible({ timeout: 5000 });
   });
 
@@ -32,13 +32,13 @@ test.describe("Cart & Hold Strict E2E Workflows", () => {
     const targetUrl = await productLink.getAttribute("href");
     await page.goto(targetUrl!);
 
-    const addBtn = page.getByRole("button", { name: /Add to Cart/i });
+    const addBtn = page.getByRole("button", { name: /Add to Cart|ЗАБРОНИРОВАТЬ/i });
     await expect(addBtn).toBeVisible({ timeout: 5000 });
     await addBtn.click();
 
     await page.reload();
     await expect(
-      page.getByText(/1-of-1 Piece Reserved in Cart|Item held until|Reserved/i)
+      page.getByText(/1-of-1 Piece Reserved in Cart|Item held until|Reserved|ЗАБРОНИРОВАНА/i)
     ).toBeVisible({ timeout: 5000 });
   });
 
@@ -57,18 +57,18 @@ test.describe("Cart & Hold Strict E2E Workflows", () => {
 
     // Browser A reserves 1-of-1 piece
     await pageA.goto(targetUrl!);
-    const addBtnA = pageA.getByRole("button", { name: /Add to Cart/i });
+    const addBtnA = pageA.getByRole("button", { name: /Add to Cart|ЗАБРОНИРОВАТЬ/i });
     await expect(addBtnA).toBeVisible({ timeout: 5000 });
     await addBtnA.click();
 
     // Browser B attempts to reserve same piece -> must strictly encounter button and hold rejection
     await pageB.goto(targetUrl!);
-    const addBtnB = pageB.getByRole("button", { name: /Add to Cart/i });
+    const addBtnB = pageB.getByRole("button", { name: /Add to Cart|ЗАБРОНИРОВАТЬ/i });
     await expect(addBtnB).toBeVisible({ timeout: 5000 });
     await addBtnB.click();
 
     await expect(
-      pageB.getByText(/Item is temporarily reserved by another customer|Currently Unavailable|ITEM_HELD/i)
+      pageB.getByText(/Item is temporarily reserved by another customer|Currently Unavailable|ITEM_HELD|забронирована другим покупателем/i)
     ).toBeVisible({ timeout: 5000 });
 
     await contextA.close();

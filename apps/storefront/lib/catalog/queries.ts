@@ -1,5 +1,5 @@
 import type { AvailabilityResponse } from "@wide-label/types";
-import { getMedusaServerClient } from "../medusa/server";
+import { getMedusaServerClient, type ListProductsOptions } from "../medusa/server";
 
 export interface CatalogProduct {
   id: string;
@@ -14,6 +14,8 @@ export interface CatalogProduct {
     condition_label?: string;
     condition_rating?: number;
     item_id?: string;
+    status?: "available" | "reserved" | "sold" | "unavailable";
+    category?: string;
     [key: string]: unknown;
   };
   variants: {
@@ -24,9 +26,9 @@ export interface CatalogProduct {
   }[];
 }
 
-export async function getCatalogProducts(): Promise<CatalogProduct[]> {
+export async function getCatalogProducts(options?: ListProductsOptions): Promise<CatalogProduct[]> {
   const client = getMedusaServerClient();
-  const response = await client.listProducts();
+  const response = await client.listProducts(options);
 
   if (!response || !Array.isArray(response.products)) {
     throw new Error("Invalid Medusa products API response format");
@@ -53,7 +55,13 @@ export async function getCatalogProducts(): Promise<CatalogProduct[]> {
       : [];
 
     const meta = p.metadata && typeof p.metadata === "object" ? p.metadata : undefined;
-    const metadata = meta
+    const rawStatus = meta?.status;
+    const status: "available" | "reserved" | "sold" | "unavailable" | undefined =
+      rawStatus === "available" || rawStatus === "reserved" || rawStatus === "sold" || rawStatus === "unavailable"
+        ? rawStatus
+        : undefined;
+
+    const metadata: CatalogProduct["metadata"] = meta
       ? {
           ...meta,
           brand: typeof meta.brand === "string" ? meta.brand : undefined,
@@ -61,6 +69,8 @@ export async function getCatalogProducts(): Promise<CatalogProduct[]> {
           condition_label: typeof meta.condition_label === "string" ? meta.condition_label : undefined,
           condition_rating: typeof meta.condition_rating === "number" ? meta.condition_rating : undefined,
           item_id: typeof meta.item_id === "string" ? meta.item_id : undefined,
+          status,
+          category: typeof meta.category === "string" ? meta.category : undefined,
         }
       : undefined;
 

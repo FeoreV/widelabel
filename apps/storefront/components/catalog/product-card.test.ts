@@ -39,3 +39,32 @@ test("ProductCard component structure handles product metadata and missing thumb
   assert.ok(vnode);
   assert.strictEqual(vnode.type, "article");
 });
+
+test("ProductCard handles reserved and sold out status states", () => {
+  const sampleProduct: CatalogProduct = {
+    id: "prod_reserved_01",
+    title: "Maison Margiela Tabi Boots",
+    description: "Tabi boots 1-of-1",
+    thumbnail: "https://example.com/tabi.jpg",
+    metadata: {
+      brand: "Maison Margiela",
+      status: "reserved",
+    },
+    variants: [
+      {
+        id: "var_tabi_01",
+        title: "Size 42",
+        price: 4500000,
+        currency_code: "RUB",
+      },
+    ],
+  };
+
+  const reservedCard = ProductCard({ product: sampleProduct, availabilityStatus: "reserved" });
+  assert.ok(reservedCard);
+  assert.strictEqual(reservedCard.props.className.includes("product-card-reserved"), true);
+
+  const soldCard = ProductCard({ product: sampleProduct, availabilityStatus: "sold" });
+  assert.ok(soldCard);
+  assert.strictEqual(soldCard.props.className.includes("product-card-sold"), true);
+});

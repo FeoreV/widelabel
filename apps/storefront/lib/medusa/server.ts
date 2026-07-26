@@ -27,8 +27,17 @@ export interface MedusaProductsResponse {
   limit?: number;
 }
 
+export interface ListProductsOptions {
+  q?: string;
+  collection_id?: string[];
+  category_id?: string[];
+  order?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export class ExtendedMedusaServerClient extends MedusaStorefrontClient {
-  async listProducts(): Promise<MedusaProductsResponse> {
+  async listProducts(options?: ListProductsOptions): Promise<MedusaProductsResponse> {
     const backendUrl =
       process.env.MEDUSA_BACKEND_URL ||
       process.env.NEXT_PUBLIC_MEDUSA_URL ||
@@ -39,7 +48,24 @@ export class ExtendedMedusaServerClient extends MedusaStorefrontClient {
       process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
       process.env.MEDUSA_PUBLISHABLE_KEY ||
       "pk_0f5bfcffb9885273914dc748f5afa0a5f8ffd41557ea1b9631422069f1c81989";
-    const url = `${backendUrl.replace(/\/$/, "")}/store/products?fields=*variants,*variants.prices,*images,*metadata`;
+
+    const params = new URLSearchParams();
+    params.set("fields", "*variants,*variants.prices,*images,*metadata");
+
+    if (options?.q) {
+      params.set("q", options.q);
+    }
+    if (options?.order) {
+      params.set("order", options.order);
+    }
+    if (options?.limit) {
+      params.set("limit", String(options.limit));
+    }
+    if (options?.offset) {
+      params.set("offset", String(options.offset));
+    }
+
+    const url = `${backendUrl.replace(/\/$/, "")}/store/products?${params.toString()}`;
 
     let response: Response;
     try {

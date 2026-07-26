@@ -1,7 +1,9 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { Typography } from "../ui/typography";
+import { Button } from "../ui/button";
 
 export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -23,31 +25,40 @@ export function HeroSection() {
         <div className="hero-content">
           <div className="hero-eyebrow">
             <span className="eyebrow-accent" aria-hidden="true" />
-            <span className="eyebrow-text">SELECTIVE SECOND HAND &amp; VINTAGE STORE</span>
+            <Typography variant="caption" style={{ color: "var(--accent-lime)" }}>
+              SELECTIVE SECOND HAND &amp; VINTAGE STORE
+            </Typography>
           </div>
 
-          <h1 id="hero-title" className="hero-headline">
+          <Typography id="hero-title" variant="headline-display" style={{ marginBottom: "20px" }}>
             ARCHIVE, WORN FORWARD.
-          </h1>
+          </Typography>
 
-          <div className="hero-copy">
-            <p>СЕЛЕКТИВНЫЕ ВЕЩИ. РЕАЛЬНАЯ ИСТОРИЯ.</p>
-            <p>КАЧЕСТВО, КОТОРОЕ ПРОДОЛЖАЕТ НОСИТЬСЯ.</p>
+          <div className="hero-copy" style={{ marginBottom: "28px" }}>
+            <Typography variant="body-lg" style={{ color: "var(--text-secondary)", display: "block" }}>
+              СЕЛЕКТИВНЫЕ ВЕЩИ В ЕДИНСТВЕННОМ ЭКЗЕМПЛЯРЕ.
+            </Typography>
+            <Typography variant="body-sm" style={{ color: "var(--text-tertiary)", display: "block", marginTop: "4px" }}>
+              РЕАЛЬНАЯ ИСТОРИЯ И КАЧЕСТВО, КОТОРОЕ ПРОДОЛЖАЕТ НОСИТЬСЯ.
+            </Typography>
           </div>
 
           <div className="hero-actions">
-            <Link href="#catalog" className="btn-primary hero-btn-primary">
-              СМОТРЕТЬ КАТАЛОГ
+            <Link href="#catalog" tabIndex={-1}>
+              <Button variant="primary" size="lg" className="hero-btn-primary">
+                СМОТРЕТЬ КАТАЛОГ
+              </Button>
             </Link>
-            <Link href="#about" className="btn-secondary hero-btn-secondary">
-              О НАС
+            <Link href="#concept" tabIndex={-1}>
+              <Button variant="secondary" size="lg" className="hero-btn-secondary">
+                О КОНЦЕПЦИИ
+              </Button>
             </Link>
           </div>
         </div>
 
         {/* Slide Navigation Overlay */}
-        <div className="hero-extras" aria-label="Элементы управления">
-          {/* Slide Navigation Controls */}
+        <div className="hero-extras" aria-label="Элементы управления архивом">
           <div className="hero-slide-controls">
             <span className="slide-counter" aria-live="polite">
               0{currentSlide} / 0{totalSlides}
@@ -57,7 +68,7 @@ export function HeroSection() {
                 type="button"
                 className="slide-btn"
                 onClick={handlePrevSlide}
-                aria-label="Предыдущий слайд"
+                aria-label="Предыдущий slide дропа"
               >
                 <svg
                   width="14"
@@ -78,7 +89,7 @@ export function HeroSection() {
                 type="button"
                 className="slide-btn"
                 onClick={handleNextSlide}
-                aria-label="Следующий слайд"
+                aria-label="Следующий slide дропа"
               >
                 <svg
                   width="14"
@@ -92,7 +103,7 @@ export function HeroSection() {
                   aria-hidden="true"
                 >
                   <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
+                  <polyline points="12 5 19 12 19 19" />
                 </svg>
               </button>
             </div>
@@ -102,4 +113,3 @@ export function HeroSection() {
     </section>
   );
 }
-
